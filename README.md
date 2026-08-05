@@ -29,7 +29,7 @@ The product policies live on the classpath at
 ## Prerequisites
 
 - JDK 21 or later
-- Maven 3.9 or later (or use the wrapper)
+- Maven 3.9 or later
 - Node.js 20 or later, for the frontend and, from Class 9, for one MCP server on npm
 - An API key from Anthropic or OpenAI, **or** [Ollama](https://ollama.com) running locally.
   Not needed until Class 7: Classes 1 to 6 need no model at all.
