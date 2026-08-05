@@ -71,11 +71,11 @@ is caught before it reaches a lesson that quotes the numbers.
 
 Three orders are fixed because the course quotes them:
 
-| Order | Status | Customer | Total |
-| --- | --- | --- | --- |
-| `ORD-10001` | SHIPPED | Ana Ruiz (`CUST-42`) | 179.99 |
-| `ORD-10002` | PENDING | Marcus Adeyemi (`CUST-17`) | 34.99 |
-| `ORD-10003` | DELIVERED | Ana Ruiz (`CUST-42`) | 599.00 |
+| Order       | Status    | Customer                   | Total   |
+|-------------|-----------|----------------------------|---------|
+| `ORD-10001` | SHIPPED   | Ana Ruiz (`CUST-42`)       | €179.99 |
+| `ORD-10002` | PENDING   | Marcus Adeyemi (`CUST-17`) | €34.99  |
+| `ORD-10003` | DELIVERED | Ana Ruiz (`CUST-42`)       | €599.00 |
 
 The other 197 are generated from the index rather than randomly, so every run produces the
 same data. The spread is 87 shipped, 50 delivered, 30 pending, 25 processing and
@@ -88,3 +88,13 @@ the course changed. That is deliberate: nothing you do while following along is 
 
 If 8080 is taken, change it in `order-service/src/main/resources/application.yaml` and
 point the frontend proxy at the same port in `frontend/vite.config.js`.
+
+If 5173 is taken, change `server.port` in `frontend/vite.config.js`, or pass the port on
+the command line for a single run:
+
+```bash
+npm run dev -- --port 5174
+```
+
+Nothing in the backend refers to the frontend port, so this needs no other change. Open
+the new port instead of 5173.
