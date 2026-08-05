@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: support-agent
+
+  ai:
+    # Class 7. Swap this block and the POM starter to use a different provider.
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY}
+      chat:
+        model: claude-sonnet-4-6
+        max-tokens: 4096
+
+    mcp:
+      client:
+        name: support-agent
+        version: 1.0.0
+        request-timeout: 30s
+
+        # Class 6: our own server, over Streamable HTTP
+        streamable-http:
+          connections:
+            orders:
+              url: http://localhost:8080
+
+        # Classes 9 and 10: two servers we did not write, over stdio
+        stdio:
+          connections:
+            knowledge-base:
+              command: npx
+              args:
+                - -y
+                - "@modelcontextprotocol/server-filesystem"
+                - ./support-kb
+            knowledge-base-archive:
+              command: npx
+              args:
+                - -y
+                - "@modelcontextprotocol/server-filesystem"
+                - ./support-kb-archive
+
+  main:
+    banner-mode: "off"
+
+server:
+  port: 8081
+
+logging:
+  level:
+    root: WARN
+    com.themcpguy: INFO

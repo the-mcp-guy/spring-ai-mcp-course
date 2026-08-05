@@ -11,30 +11,33 @@
     <version>1.0.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>order-service</artifactId>
-  <name>Order Service</name>
+  <artifactId>support-agent</artifactId>
+  <name>Support Agent</name>
 
   <dependencies>
+    <!-- Class 7 serves the chat endpoint the browser calls -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-data-jpa</artifactId>
-    </dependency>
-
-    <!-- Added in Class 2: publishes the MCP endpoint on /mcp -->
+    <!-- Class 6: connects to MCP servers and bridges their tools to ChatClient -->
     <dependency>
       <groupId>org.springframework.ai</groupId>
-      <artifactId>spring-ai-starter-mcp-server-webmvc</artifactId>
+      <artifactId>spring-ai-starter-mcp-client</artifactId>
     </dependency>
 
+    <!-- Class 7: the model provider. Swap this one artifact to use a different one. -->
     <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <scope>runtime</scope>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-starter-model-anthropic</artifactId>
+    </dependency>
+
+    <!-- Publishes the ObjectMapper bean the MCP client needs. Without it the
+         application compiles and then fails at startup on a missing bean. -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-json</artifactId>
     </dependency>
 
     <dependency>

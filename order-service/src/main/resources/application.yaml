@@ -2,6 +2,13 @@ spring:
   application:
     name: order-service
 
+  ai:
+    mcp:
+      server:
+        name: order-service
+        version: 1.0.0
+        protocol: STREAMABLE
+
   datasource:
     url: jdbc:h2:mem:orders
     username: sa
