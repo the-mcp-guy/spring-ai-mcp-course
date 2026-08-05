@@ -33,6 +33,14 @@
       <artifactId>spring-ai-starter-model-anthropic</artifactId>
     </dependency>
 
+    <!-- Also here so the course can be followed with no account, using the "ollama"
+         profile. Two providers on the classpath means spring.ai.model.chat has to say
+         which one to use; the profile sets it. -->
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-starter-model-ollama</artifactId>
+    </dependency>
+
     <!-- Publishes the ObjectMapper bean the MCP client needs. Without it the
          application compiles and then fails at startup on a missing bean. -->
     <dependency>

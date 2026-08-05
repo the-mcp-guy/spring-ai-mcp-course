@@ -31,12 +31,25 @@
   </properties>
 
   <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-maven-plugin</artifactId>
-          <configuration>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <executions>
+          <!--
+            Declaring the plugin here rather than in pluginManagement keeps the parent's
+            repackage execution, which is what makes the jar runnable with java -jar in
+            Class 17. Overriding it in pluginManagement silently drops that execution and
+            produces a jar with no Start-Class.
+          -->
+          <execution>
+            <id>repackage</id>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
             <!--
               Run from the repository root rather than the module directory, so that the
               relative paths the stdio MCP servers are given (./support-kb) resolve where
@@ -45,10 +58,9 @@
               20 seconds for a handshake that never arrives.
             -->
             <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 
   <dependencyManagement>

@@ -1,0 +1,16 @@
+# Run the whole course against a model on your own machine, with no account and no key:
+#
+#   ollama pull qwen3:8b
+#   mvn -pl support-agent spring-boot:run -Dspring-boot.run.profiles=ollama,cli
+#
+# Both provider starters are on the classpath, so spring.ai.model.chat has to name the one
+# to use. Without it, autoconfiguration finds two ChatModel beans and the context fails.
+spring:
+  ai:
+    model:
+      chat: ollama
+    ollama:
+      chat:
+        model: qwen3:8b
+        options:
+          temperature: 0.0

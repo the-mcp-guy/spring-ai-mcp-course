@@ -29,7 +29,9 @@ public class OrderServerNotifications {
 
     @McpProgress(clients = "orders")
     public void onProgress(Double progress, String progressToken, String total) {
-        int percent = progress == null ? 0 : (int) Math.round(progress);
+        // The server calls context.progress(int) with 0-100, but that sends
+        // percentage / 100.0 with total 1.0, so what arrives here is a fraction.
+        int percent = progress == null ? 0 : (int) Math.round(progress * 100);
         log.info("  [{}] {}%", progressToken, percent);
 
         // The agent sets the progress token to the conversation ID, so it routes.

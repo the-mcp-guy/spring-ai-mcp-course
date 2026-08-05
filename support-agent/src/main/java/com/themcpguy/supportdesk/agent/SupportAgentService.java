@@ -1,5 +1,7 @@
 package com.themcpguy.supportdesk.agent;
 
+import java.util.Map;
+
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -51,6 +53,10 @@ public class SupportAgentService {
     public String chat(String conversationId, String userMessage) {
         return chatClient.prompt()
                 .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId))
+                // The progress token is what a server's progress notifications are
+                // addressed to. Using the conversation ID means the handler in Class 11
+                // can route them straight back to the right browser.
+                .toolContext(Map.of("progressToken", conversationId))
                 .user(userMessage)
                 .call()
                 .content();
@@ -67,6 +73,10 @@ public class SupportAgentService {
 
         return chatClient.prompt()
                 .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId))
+                // The progress token is what a server's progress notifications are
+                // addressed to. Using the conversation ID means the handler in Class 11
+                // can route them straight back to the right browser.
+                .toolContext(Map.of("progressToken", conversationId))
                 .system(system -> system.text("""
                         {base}
 

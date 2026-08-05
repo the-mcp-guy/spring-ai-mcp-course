@@ -1,0 +1,25 @@
+# Class 17: the same service over stdio, for Claude Desktop.
+#
+#   mvn -pl order-service -am clean package
+#   java -jar order-service/target/order-service-1.0.0-SNAPSHOT.jar \
+#     --spring.profiles.active=stdio
+#
+# Standard output IS the connection. Anything printed to it that is not a protocol
+# message reaches the client as malformed JSON-RPC, so the banner is off, the console
+# appender is emptied, and the logs go to a file.
+spring:
+  ai:
+    mcp:
+      server:
+        stdio: true
+        name: order-service
+        version: 1.0.0
+  main:
+    web-application-type: none
+    banner-mode: "off"
+
+logging:
+  threshold:
+    console: OFF        # silences the console appender without an empty-pattern warning
+  file:
+    name: /tmp/order-service-stdio.log
