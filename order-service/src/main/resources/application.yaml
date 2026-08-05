@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: order-service
+
+  datasource:
+    url: jdbc:h2:mem:orders
+    username: sa
+    password: ""
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
+
+  h2:
+    console:
+      enabled: true
+
+  main:
+    banner-mode: "off"
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: WARN
+    com.themcpguy: INFO
