@@ -64,7 +64,7 @@ export default function App() {
       {error && (
         <p className="error">
           Could not reach order-service: {error}. Start it with{' '}
-          <code>./mvnw -pl order-service spring-boot:run</code>.
+          <code>mvn -pl order-service spring-boot:run</code>.
         </p>
       )}
 
