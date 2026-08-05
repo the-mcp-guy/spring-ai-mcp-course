@@ -1,5 +1,5 @@
 const money = (amount) =>
-  new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(amount ?? 0)
+  new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR' }).format(amount ?? 0)
 
 export default function OrderList({ orders, selected, onSelect }) {
   return (
