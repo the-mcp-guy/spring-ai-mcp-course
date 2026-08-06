@@ -1,9 +1,10 @@
 # Support Desk: Spring AI + MCP course
 
 > [!NOTE]
-> **This branch is Class 2.** It implements
-> [Class 2: From a REST Application to an MCP Server](https://themcpguy.com/docs/mcp-spring-ai/rest-app-to-mcp-server),
-> which turns the order service into an MCP server and exposes its first tool. Nothing else
+> **This branch is Class 3.** It implements
+> [Class 3: Tools in Depth](https://themcpguy.com/docs/mcp-spring-ai/tools-in-depth),
+> which adds three more tools to the MCP server built in
+> [Class 2](https://themcpguy.com/docs/mcp-spring-ai/rest-app-to-mcp-server). Nothing else
 > in the project changes. `main` stays at the course starting point, with no AI or MCP code
 > at all, so clone that branch to follow along from Class 1.
 
@@ -45,7 +46,18 @@ mvn -pl order-service spring-boot:run
 - H2 console: `http://localhost:8080/h2-console` (JDBC URL `jdbc:h2:mem:orders`, user `sa`,
   empty password)
 
-From Class 2 this same application also publishes an MCP endpoint on `/mcp`.
+From Class 2 this same application also publishes an MCP endpoint on `/mcp`. On this branch
+it registers four tools, all defined in
+`order-service/src/main/java/com/themcpguy/supportdesk/orders/mcp/OrderTools.java`:
+
+| Tool                   | What it does                       | Read only |
+|------------------------|------------------------------------|-----------|
+| `get_order`            | One order by ID                    | yes       |
+| `get_customer_orders`  | Every order for one customer       | yes       |
+| `get_orders_by_status` | Every order in one status          | yes       |
+| `update_order_status`  | Move an order to a new status      | no        |
+
+The startup log confirms them: `Registered tools: 4`.
 
 ## Running the frontend
 
