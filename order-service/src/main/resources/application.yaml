@@ -1,4 +1,10 @@
 spring:
+  ai:
+    mcp:
+      server:
+        name: order-service
+        version: 1.0.0
+        protocol: STREAMABLE
   application:
     name: order-service
 
@@ -26,3 +32,4 @@ logging:
   level:
     root: WARN
     com.themcpguy: INFO
+    org.springframework.ai.mcp: INFO

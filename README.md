@@ -1,10 +1,11 @@
 # Support Desk: Spring AI + MCP course
 
-> [!IMPORTANT]
-> **This is the course starting point, not a finished project.** It contains a working
-> Spring Boot order service and a React frontend, and **no AI or MCP code at all**. We add
-> that together across the course. `main` is the default branch so that cloning it puts you
-> exactly where Class 1 begins.
+> [!NOTE]
+> **This branch is Class 2.** It implements
+> [Class 2: From a REST Application to an MCP Server](https://themcpguy.com/docs/mcp-spring-ai/rest-app-to-mcp-server),
+> which turns the order service into an MCP server and exposes its first tool. Nothing else
+> in the project changes. `main` stays at the course starting point, with no AI or MCP code
+> at all, so clone that branch to follow along from Class 1.
 
 Companion repository for the [Spring AI + MCP course](https://themcpguy.com/docs/mcp-spring-ai/why-spring-ai)
 on themcpguy.com.
