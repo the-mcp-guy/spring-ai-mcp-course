@@ -1,12 +1,12 @@
 # Support Desk: Spring AI + MCP course
 
 > [!NOTE]
-> **This branch is Class 4.** It implements
-> [Class 4: Resources](https://themcpguy.com/docs/mcp-spring-ai/resources),
-> which exposes the product policies and a single order as MCP resources, on top of the
-> tools built in
+> **This branch is Class 5.** It implements
+> [Class 5: Prompts and Completion](https://themcpguy.com/docs/mcp-spring-ai/prompts-and-completion),
+> which adds the third MCP primitive on top of the tools from
 > [Class 2](https://themcpguy.com/docs/mcp-spring-ai/rest-app-to-mcp-server) and
-> [Class 3](https://themcpguy.com/docs/mcp-spring-ai/tools-in-depth). Nothing else in the
+> [Class 3](https://themcpguy.com/docs/mcp-spring-ai/tools-in-depth) and the resources from
+> [Class 4](https://themcpguy.com/docs/mcp-spring-ai/resources). Nothing else in the
 > project changes. `main` stays at the course starting point, with no AI or MCP code at
 > all, so clone that branch to follow along from Class 1.
 
@@ -70,9 +70,23 @@ From Class 4 it also publishes resources, defined in `PolicyResources.java` and
 | `policy://shipping`  | fixed         | The shipping policy, as Markdown|
 | `order://{orderId}`  | URI template  | One order, by ID                |
 
-The startup log confirms both sets: `Registered tools: 4` and `Registered resources: 2`.
-The template is counted separately, so it is listed by `resources/templates/list` rather
-than `resources/list`.
+From Class 5 it publishes one prompt as well, in `RefundPrompts.java`:
+
+| Prompt               | Arguments           | Completion                                  |
+|----------------------|---------------------|---------------------------------------------|
+| `draft_refund_email` | `orderId`, `reason` | Five fixed reasons, order IDs from the data |
+
+The startup log confirms all of it:
+
+```
+Registered tools: 4
+Registered resources: 2
+Registered prompts: 1
+Registered completions: 1
+```
+
+The resource template is counted separately from the two fixed resources, so it is listed
+by `resources/templates/list` rather than `resources/list`.
 
 ## Running the frontend
 
