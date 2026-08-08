@@ -1,12 +1,14 @@
 # Support Desk: Spring AI + MCP course
 
 > [!NOTE]
-> **This branch is Class 3.** It implements
-> [Class 3: Tools in Depth](https://themcpguy.com/docs/mcp-spring-ai/tools-in-depth),
-> which adds three more tools to the MCP server built in
-> [Class 2](https://themcpguy.com/docs/mcp-spring-ai/rest-app-to-mcp-server). Nothing else
-> in the project changes. `main` stays at the course starting point, with no AI or MCP code
-> at all, so clone that branch to follow along from Class 1.
+> **This branch is Class 4.** It implements
+> [Class 4: Resources](https://themcpguy.com/docs/mcp-spring-ai/resources),
+> which exposes the product policies and a single order as MCP resources, on top of the
+> tools built in
+> [Class 2](https://themcpguy.com/docs/mcp-spring-ai/rest-app-to-mcp-server) and
+> [Class 3](https://themcpguy.com/docs/mcp-spring-ai/tools-in-depth). Nothing else in the
+> project changes. `main` stays at the course starting point, with no AI or MCP code at
+> all, so clone that branch to follow along from Class 1.
 
 Companion repository for the [Spring AI + MCP course](https://themcpguy.com/docs/mcp-spring-ai/why-spring-ai)
 on themcpguy.com.
@@ -27,6 +29,8 @@ support-kb-archive/     the pre-2024 versions of the same notes, added in Class 
 
 The product policies live on the classpath at
 `order-service/src/main/resources/policies/`, and Class 4 exposes them as MCP resources.
+They are ordinary Markdown, so editing one changes what the server serves on the next
+restart.
 
 ## Prerequisites
 
@@ -57,7 +61,18 @@ it registers four tools, all defined in
 | `get_orders_by_status` | Every order in one status          | yes       |
 | `update_order_status`  | Move an order to a new status      | no        |
 
-The startup log confirms them: `Registered tools: 4`.
+From Class 4 it also publishes resources, defined in `PolicyResources.java` and
+`OrderResources.java` in the same package:
+
+| Resource             | Kind          | Serves                          |
+|----------------------|---------------|---------------------------------|
+| `policy://returns`   | fixed         | The returns policy, as Markdown |
+| `policy://shipping`  | fixed         | The shipping policy, as Markdown|
+| `order://{orderId}`  | URI template  | One order, by ID                |
+
+The startup log confirms both sets: `Registered tools: 4` and `Registered resources: 2`.
+The template is counted separately, so it is listed by `resources/templates/list` rather
+than `resources/list`.
 
 ## Running the frontend
 
