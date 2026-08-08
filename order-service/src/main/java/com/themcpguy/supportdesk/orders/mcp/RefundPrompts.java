@@ -43,7 +43,7 @@ public class RefundPrompts {
         String instruction = """
                 Write a short email to %s confirming a refund for order %s.
 
-                Order total: %.2f
+                Order total: €%.2f
                 Reason for the refund: %s
 
                 Keep it to three sentences. Apologise once, state the amount, and say the
