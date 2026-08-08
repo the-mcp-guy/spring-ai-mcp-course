@@ -1,0 +1,16 @@
+spring:
+  ai:
+    mcp:
+      client:
+        name: support-agent
+        version: 1.0.0
+        request-timeout: 30s
+        streamable-http:
+          connections:
+            orders:
+              url: http://localhost:8080
+
+logging:
+  level:
+    root: WARN
+    com.themcpguy: INFO
