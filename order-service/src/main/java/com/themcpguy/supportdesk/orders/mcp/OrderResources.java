@@ -1,5 +1,7 @@
 package com.themcpguy.supportdesk.orders.mcp;
 
+import tools.jackson.databind.ObjectMapper;
+
 import org.springframework.ai.mcp.annotation.McpResource;
 import org.springframework.stereotype.Component;
 
@@ -9,9 +11,11 @@ import com.themcpguy.supportdesk.orders.service.OrderService;
 public class OrderResources {
 
     private final OrderService orderService;
+    private final ObjectMapper objectMapper;
 
-    OrderResources(OrderService orderService) {
+    OrderResources(OrderService orderService, ObjectMapper objectMapper) {
         this.orderService = orderService;
+        this.objectMapper = objectMapper;
     }
 
     @McpResource(
@@ -22,7 +26,7 @@ public class OrderResources {
             mimeType = "application/json")
     public String order(String orderId) {
         return orderService.findById(orderId)
-                .map(Object::toString)
+                .map(objectMapper::writeValueAsString)
                 .orElseThrow(() -> new IllegalArgumentException("No order with ID " + orderId));
     }
 }
