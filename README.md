@@ -1,14 +1,16 @@
 # Support Desk: Spring AI + MCP course
 
 > [!NOTE]
-> **This branch is Class 5.** It implements
-> [Class 5: Prompts and Completion](https://themcpguy.com/docs/mcp-spring-ai/prompts-and-completion),
-> which adds the third MCP primitive on top of the tools from
-> [Class 2](https://themcpguy.com/docs/mcp-spring-ai/rest-app-to-mcp-server) and
-> [Class 3](https://themcpguy.com/docs/mcp-spring-ai/tools-in-depth) and the resources from
-> [Class 4](https://themcpguy.com/docs/mcp-spring-ai/resources). Nothing else in the
-> project changes. `main` stays at the course starting point, with no AI or MCP code at
-> all, so clone that branch to follow along from Class 1.
+> **This branch is Class 6.** It implements
+> [Class 6: Connecting a Client](https://themcpguy.com/docs/mcp-spring-ai/connecting-a-client),
+> which adds a second application, `support-agent`, that connects to the order service as
+> an MCP client. Classes 2 to 5 built the server side:
+> [tools](https://themcpguy.com/docs/mcp-spring-ai/rest-app-to-mcp-server),
+> [more tools](https://themcpguy.com/docs/mcp-spring-ai/tools-in-depth),
+> [resources](https://themcpguy.com/docs/mcp-spring-ai/resources) and
+> [prompts](https://themcpguy.com/docs/mcp-spring-ai/prompts-and-completion). There is
+> still no model involved. `main` stays at the course starting point, with no AI or MCP
+> code at all, so clone that branch to follow along from Class 1.
 
 Companion repository for the [Spring AI + MCP course](https://themcpguy.com/docs/mcp-spring-ai/why-spring-ai)
 on themcpguy.com.
@@ -22,6 +24,7 @@ time on MCP rather than on Spring Boot.
 
 ```
 order-service/          the application. MCP is added to it from Class 2.
+support-agent/          the MCP client, added in Class 6. Gets a model in Class 7.
 frontend/               React + Vite. Never taught, never changed.
 support-kb/             the support team's notes, served over MCP from Class 9
 support-kb-archive/     the pre-2024 versions of the same notes, added in Class 10
@@ -87,6 +90,35 @@ Registered completions: 1
 
 The resource template is counted separately from the two fixed resources, so it is listed
 by `resources/templates/list` rather than `resources/list`.
+
+## Running the agent
+
+From Class 6 there is a second application. Leave the order service running, then in
+another terminal:
+
+```bash
+mvn -pl support-agent spring-boot:run
+```
+
+It is not a web application. It connects to the order service over MCP, prints what the
+server offers, calls one tool and exits:
+
+```
+Connected to order-service 1.0.0
+  tool     get_customer_orders
+  tool     get_order
+  tool     get_orders_by_status
+  tool     update_order_status
+  resource policy://shipping
+  resource policy://returns
+  prompt   draft_refund_email
+```
+
+The order service must be up first, on the port named in
+`support-agent/src/main/resources/application.yaml`. Note that `order://{orderId}` does not
+appear: it is a template, and templates are not returned by `resources/list`.
+
+There is still no model in the picture. The agent gets one in Class 7.
 
 ## Running the frontend
 
