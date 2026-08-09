@@ -6,12 +6,16 @@ spring:
     retry:
       max-attempts: 1
     model:
-      chat: anthropic          # or: ollama
+      chat: anthropic          # or: ollama, openai
     anthropic:
       api-key: ${ANTHROPIC_API_KEY}
       chat:
         model: claude-sonnet-4-6
         max-tokens: 4096
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        model: gpt-4o
     ollama:
       chat:
         model: qwen3:8b

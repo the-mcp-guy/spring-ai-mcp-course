@@ -42,8 +42,8 @@ restart.
 - JDK 21 or later
 - Maven 3.9 or later
 - Node.js 20 or later, for the frontend and, from Class 9, for one MCP server on npm
-- An API key from Anthropic, **or** [Ollama](https://ollama.com) running locally. Needed
-  from this class on: the agent hands the order tools to a model.
+- An API key from Anthropic or OpenAI, **or** [Ollama](https://ollama.com) running
+  locally. Needed from this class on: the agent hands the order tools to a model.
 
 ## Running the backend
 
@@ -145,6 +145,9 @@ mvn -pl support-agent spring-boot:run \
   -Dspring-boot.run.profiles=cli \
   -Dspring-boot.run.arguments=--spring.ai.model.chat=ollama
 ```
+
+The same switch selects OpenAI: set `OPENAI_API_KEY` and pass
+`--spring.ai.model.chat=openai`.
 
 Class 8 reads the server's resources and prompts into the conversation.
 
