@@ -1,5 +1,23 @@
 spring:
+  http:
+    clients:
+      read-timeout: 10s
   ai:
+    retry:
+      max-attempts: 1
+    model:
+      chat: anthropic          # or: ollama
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY}
+      chat:
+        model: claude-sonnet-4-6
+        max-tokens: 4096
+    ollama:
+      chat:
+        model: qwen3:8b
+        temperature: 0.6
+        top-p: 0.95
+        top-k: 20
     mcp:
       client:
         name: support-agent
@@ -9,8 +27,11 @@ spring:
           connections:
             orders:
               url: http://localhost:8080
-
+server:
+  port: 8081
 logging:
   level:
     root: WARN
     com.themcpguy: INFO
+    org.springframework.ai.model.tool: DEBUG
+    io.modelcontextprotocol.client.transport: DEBUG

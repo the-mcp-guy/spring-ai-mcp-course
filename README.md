@@ -1,16 +1,18 @@
 # Support Desk: Spring AI + MCP course
 
 > [!NOTE]
-> **This branch is Class 6.** It implements
-> [Class 6: Connecting a Client](https://themcpguy.com/docs/mcp-spring-ai/connecting-a-client),
-> which adds a second application, `support-agent`, that connects to the order service as
-> an MCP client. Classes 2 to 5 built the server side:
+> **This branch is Class 7.** It implements
+> [Class 7: Handing the Tools to a Model](https://themcpguy.com/docs/mcp-spring-ai/tools-to-a-model),
+> which gives the Class 6 client a model: a ChatClient that hands the discovered MCP
+> tools to Claude or a local Ollama model, a console chat behind the `cli` profile, and
+> a small web API for the frontend. Classes 2 to 5 built the server side:
 > [tools](https://themcpguy.com/docs/mcp-spring-ai/rest-app-to-mcp-server),
 > [more tools](https://themcpguy.com/docs/mcp-spring-ai/tools-in-depth),
 > [resources](https://themcpguy.com/docs/mcp-spring-ai/resources) and
-> [prompts](https://themcpguy.com/docs/mcp-spring-ai/prompts-and-completion). There is
-> still no model involved. `main` stays at the course starting point, with no AI or MCP
-> code at all, so clone that branch to follow along from Class 1.
+> [prompts](https://themcpguy.com/docs/mcp-spring-ai/prompts-and-completion), and
+> [Class 6](https://themcpguy.com/docs/mcp-spring-ai/connecting-a-client) connected the
+> client. `main` stays at the course starting point, with no AI or MCP code at all, so
+> clone that branch to follow along from Class 1.
 
 Companion repository for the [Spring AI + MCP course](https://themcpguy.com/docs/mcp-spring-ai/why-spring-ai)
 on themcpguy.com.
@@ -24,7 +26,7 @@ time on MCP rather than on Spring Boot.
 
 ```
 order-service/          the application. MCP is added to it from Class 2.
-support-agent/          the MCP client, added in Class 6. Gets a model in Class 7.
+support-agent/          the agent: an MCP client since Class 6, with a model since Class 7.
 frontend/               React + Vite. Never taught, never changed.
 support-kb/             the support team's notes, served over MCP from Class 9
 support-kb-archive/     the pre-2024 versions of the same notes, added in Class 10
@@ -40,8 +42,8 @@ restart.
 - JDK 21 or later
 - Maven 3.9 or later
 - Node.js 20 or later, for the frontend and, from Class 9, for one MCP server on npm
-- An API key from Anthropic or OpenAI, **or** [Ollama](https://ollama.com) running locally.
-  Not needed until Class 7: Classes 1 to 6 need no model at all.
+- An API key from Anthropic, **or** [Ollama](https://ollama.com) running locally. Needed
+  from this class on: the agent hands the order tools to a model.
 
 ## Running the backend
 
@@ -93,15 +95,20 @@ by `resources/templates/list` rather than `resources/list`.
 
 ## Running the agent
 
-From Class 6 there is a second application. Leave the order service running, then in
-another terminal:
+From Class 7 the agent has a model. Set the API key in the terminal that will run it
+(skip this if you use Ollama):
 
 ```bash
-mvn -pl support-agent spring-boot:run
+export ANTHROPIC_API_KEY="sk-ant-..."
 ```
 
-It is not a web application. It connects to the order service over MCP, prints what the
-server offers, calls one tool and exits:
+Leave the order service running, then start the console chat:
+
+```bash
+mvn -pl support-agent spring-boot:run -Dspring-boot.run.profiles=cli
+```
+
+On startup it still prints what the server offers, the Class 6 listing:
 
 ```
 Connected to order-service 1.0.0
@@ -114,11 +121,32 @@ Connected to order-service 1.0.0
   prompt   draft_refund_email
 ```
 
-The order service must be up first, on the port named in
-`support-agent/src/main/resources/application.yaml`. Note that `order://{orderId}` does not
-appear: it is a template, and templates are not returned by `resources/list`.
+then waits for input. Ask about an order; type `quit` to leave. Every fact in an answer
+comes from the four tools, and the DEBUG lines in between show each tool call as it
+happens. The order service must be up first, on the port named in
+`support-agent/src/main/resources/application.yaml`. Note that `order://{orderId}` does
+not appear in the listing: it is a template, and templates are not returned by
+`resources/list`.
 
-There is still no model in the picture. The agent gets one in Class 7.
+Started without the `cli` profile,
+
+```bash
+mvn -pl support-agent spring-boot:run
+```
+
+it serves the same agent to the frontend as `POST /api/chat` on port 8081 instead of
+reading the terminal.
+
+To run on Ollama instead of Anthropic, pull the model once with `ollama pull qwen3:8b`,
+then pick the provider on the command line. No API key is needed:
+
+```bash
+mvn -pl support-agent spring-boot:run \
+  -Dspring-boot.run.profiles=cli \
+  -Dspring-boot.run.arguments=--spring.ai.model.chat=ollama
+```
+
+Class 8 reads the server's resources and prompts into the conversation.
 
 ## Running the frontend
 
@@ -128,8 +156,8 @@ npm install     # first time only
 npm run dev
 ```
 
-Open `http://localhost:5173`. The order list works immediately. The chat panel reports
-that the agent is not running until Class 7 builds it, and the progress bar and
+Open `http://localhost:5173`. The order list works immediately, and with the agent
+running in web mode the chat panel talks to it on port 8081. The progress bar and
 confirmation dialog come alive in Classes 11 and 12.
 
 ## Running the tests
@@ -162,6 +190,10 @@ the course changed. That is deliberate: nothing you do while following along is 
 
 If 8080 is taken, change it in `order-service/src/main/resources/application.yaml` and
 point the frontend proxy at the same port in `frontend/vite.config.js`.
+
+If 8081 is taken, change `server.port` in
+`support-agent/src/main/resources/application.yaml` and point the three agent entries of
+the same proxy (`/api/chat`, `/api/events`, `/api/confirmations`) at the new port.
 
 If 5173 is taken, change `server.port` in `frontend/vite.config.js`, or pass the port on
 the command line for a single run:
