@@ -20,6 +20,7 @@ public class OrderTools {
 
     @McpTool(
             name = "get_order",
+            generateOutputSchema = true,
             description = """
             Look up a single order by its ID.
             Returns the status, the customer, the line items, the total and the shipment.
