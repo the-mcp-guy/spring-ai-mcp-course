@@ -1,11 +1,8 @@
 package com.themcpguy.supportdesk.agent.mcp;
 
 import java.util.List;
-import java.util.Map;
 
 import io.modelcontextprotocol.client.McpSyncClient;
-import io.modelcontextprotocol.spec.McpSchema.CallToolRequest;
-import io.modelcontextprotocol.spec.McpSchema.CallToolResult;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -39,12 +36,5 @@ public class McpInspector implements CommandLineRunner {
                         System.out.printf("  prompt   %s%n", prompt.name()));
             }
         }
-
-        CallToolResult result = clients.getFirst().callTool(
-                CallToolRequest.builder("get_order")
-                        .arguments(Map.of("orderId", "ORD-10001"))
-                        .build());
-
-        System.out.println(result.content());
     }
 }
