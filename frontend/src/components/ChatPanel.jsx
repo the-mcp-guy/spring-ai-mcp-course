@@ -8,7 +8,7 @@ import ConfirmDialog from './ConfirmDialog.jsx'
  * reported rather than treated as an error. Progress notifications (Class 11) and
  * confirmation requests (Class 12) arrive on an SSE stream the agent opens.
  */
-export default function ChatPanel({ order }) {
+export default function ChatPanel({ order, onClearOrder }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
@@ -84,14 +84,25 @@ export default function ChatPanel({ order }) {
     <section className="chat">
       <h2>
         Ask the desk
+        {order && (
+          <button
+            className="chip"
+            onClick={onClearOrder}
+            title="Detach this order from the conversation"
+          >
+            about {order.orderId} &#x2715;
+          </button>
+        )}
         {agentUp === false && <span className="muted">: agent not running</span>}
       </h2>
 
       <div className="messages">
         {messages.length === 0 && (
           <p className="muted">
-            Ask about {order ? order.orderId : 'an order'}. The agent that answers is built
-            in Class 7.
+            {order
+              ? `Ask about ${order.orderId}; it is attached to this conversation.`
+              : 'Ask about any order by its ID, or select one on the left to attach it.'}
+            {agentUp === false && ' The agent that answers is built in Class 7.'}
           </p>
         )}
         {messages.map((m, i) => (
