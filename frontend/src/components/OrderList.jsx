@@ -11,7 +11,7 @@ export default function OrderList({ orders, selected, onSelect }) {
           <li
             key={order.orderId}
             className={order.orderId === selected?.orderId ? 'order selected' : 'order'}
-            onClick={() => onSelect(order)}
+            onClick={() => onSelect(order.orderId === selected?.orderId ? null : order)}
           >
             <span className="id">{order.orderId}</span>
             <span className={`badge ${order.status.toLowerCase()}`}>{order.status}</span>
