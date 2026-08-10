@@ -24,7 +24,7 @@ export default function App() {
       .then((data) => {
         if (!cancelled) {
           setOrders(data)
-          setSelected(data[0] ?? null)
+          setSelected(null)
         }
       })
       .catch((e) => !cancelled && setError(e.message))
@@ -70,7 +70,7 @@ export default function App() {
 
       <main>
         <OrderList orders={orders} selected={selected} onSelect={setSelected} />
-        <ChatPanel order={selected} />
+        <ChatPanel order={selected} onClearOrder={() => setSelected(null)} />
       </main>
     </div>
   )
