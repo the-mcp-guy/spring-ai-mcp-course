@@ -30,6 +30,9 @@ public class McpInspector implements CommandLineRunner {
             if (capabilities.resources() != null) {
                 client.listResources().resources().forEach(resource ->
                         System.out.printf("  resource %s%n", resource.uri()));
+
+                client.listResourceTemplates().resourceTemplates()
+                        .forEach(template -> System.out.printf("  template %s%n", template.uriTemplate()));
             }
             if (capabilities.prompts() != null) {
                 client.listPrompts().prompts().forEach(prompt ->

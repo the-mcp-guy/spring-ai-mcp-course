@@ -1,5 +1,6 @@
 package com.themcpguy.supportdesk.agent.service;
 
+import com.themcpguy.supportdesk.agent.mcp.McpResources;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -11,11 +12,7 @@ import reactor.core.publisher.Flux;
 @Service
 public class SupportAgentService {
 
-    private final ChatClient chatClient;
-
-    SupportAgentService(ChatClient.Builder builder, SyncMcpToolCallbackProvider mcpTools) {
-        this.chatClient = builder
-                .defaultSystem("""
+    static final String BASE_SYSTEM = """
                     You are a support agent for an online shop. You answer questions
                     about orders using the tools you have been given.
 
@@ -28,7 +25,15 @@ public class SupportAgentService {
                     - If a tool returns an error, tell the user what it said and what
                       they could try instead.
                     - Keep answers to a few sentences unless asked for detail.
-                    """)
+                    """;
+
+    private final ChatClient chatClient;
+    private final McpResources resources;
+
+    SupportAgentService(ChatClient.Builder builder, SyncMcpToolCallbackProvider mcpTools, McpResources resources) {
+        this.resources = resources;
+        this.chatClient = builder
+                .defaultSystem(BASE_SYSTEM)
                 .defaultTools(mcpTools)
                 .defaultAdvisors(MessageChatMemoryAdvisor.builder(
                         MessageWindowChatMemory.builder().build()).build())
@@ -38,6 +43,36 @@ public class SupportAgentService {
     public String chat(String conversationId, String userMessage) {
         return chatClient.prompt()
                 .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId))
+                .user(userMessage)
+                .call()
+                .content();
+    }
+
+    public String chatWithPolicy(String conversationId, String userMessage, String orderId) {
+        String returnsPolicy = resources.read("policy://returns");
+        String orderBlock = orderId == null || orderId.isBlank() ? "" : """
+
+                The conversation was opened from the order below. Questions about "this
+                order" or "the customer" refer to it.
+
+                """ + resources.orderResource(orderId);
+
+        return chatClient.prompt()
+                .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId))
+                .system(system -> system.text("""
+                    {base}
+
+                    The current returns policy is below. Use it for any question about
+                    returns, refunds or the returns window. Do not rely on anything you
+                    remember about returns policies.
+
+                    ---
+                    {policy}
+                    {order}
+                    """)
+                        .param("base", BASE_SYSTEM)
+                        .param("policy", returnsPolicy)
+                        .param("order", orderBlock))
                 .user(userMessage)
                 .call()
                 .content();
