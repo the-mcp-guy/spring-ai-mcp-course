@@ -1,3 +1,5 @@
+import RefundDraft from './RefundDraft.jsx'
+
 const money = (amount) =>
   new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR' }).format(amount ?? 0)
 
@@ -43,6 +45,7 @@ export default function OrderList({ orders, selected, onSelect }) {
           ) : (
             <p className="shipment muted">Not shipped yet</p>
           )}
+          <RefundDraft order={selected} />
         </div>
       )}
     </section>
