@@ -131,6 +131,13 @@ form input { flex: 1; padding: 8px 10px; border: 1px solid var(--line); border-r
 form button { padding: 8px 16px; border: 0; border-radius: 8px; background: var(--fg); color: var(--bg); font: inherit; cursor: pointer; }
 form button:disabled { opacity: 0.4; cursor: default; }
 
+.detail .refund { margin-top: 10px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: inherit; font: inherit; font-size: 13px; cursor: pointer; }
+.detail .refund:hover:not(:disabled) { background: color-mix(in srgb, var(--fg) 6%, transparent); }
+.detail .refund:disabled { opacity: 0.45; cursor: default; }
+
+.dialog .reasons { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+.dialog .draft { margin: 12px 0 0; padding: 10px; border: 1px solid var(--line); border-radius: 8px; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; max-height: 50vh; overflow-y: auto; }
+
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: grid; place-items: center; padding: 20px; }
 .dialog { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 20px; max-width: 420px; width: 100%; }
 .dialog h3 { margin: 0 0 8px; font-size: 15px; }
