@@ -60,18 +60,14 @@ export default function RefundDraft({ order }) {
 
   return (
     <>
-      <button
-        className="refund"
-        disabled={!eligible}
-        title={
-          eligible
-            ? undefined
-            : 'Not shipped yet: cancel the order instead, and cancelling starts the refund'
-        }
-        onClick={() => setOpen(true)}
-      >
+      <button className="refund" disabled={!eligible} onClick={() => setOpen(true)}>
         Draft refund email
       </button>
+      {!eligible && (
+        <p className="refund-hint">
+          Cancel the order instead; cancelling is what starts a refund.
+        </p>
+      )}
 
       {open && (
         <div className="overlay">
@@ -79,6 +75,15 @@ export default function RefundDraft({ order }) {
             {draft === null ? (
               <form onSubmit={requestDraft}>
                 <h3>Draft a refund email for {order.orderId}</h3>
+                <label>
+                  Reason for the refund
+                  <input
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    placeholder="Type a reason, or pick one below"
+                    autoFocus
+                  />
+                </label>
                 <div className="reasons">
                   {REASONS.map((r) => (
                     <button
@@ -91,21 +96,13 @@ export default function RefundDraft({ order }) {
                     </button>
                   ))}
                 </div>
-                <label>
-                  Reason for the refund
-                  <input
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                    placeholder="pick one above, or write your own"
-                  />
-                </label>
                 {error && <p className="error">{error}</p>}
                 <div className="actions">
                   <button type="button" onClick={close}>
                     Cancel
                   </button>
-                  <button type="submit" disabled={busy || !reason.trim()}>
-                    {busy ? 'Drafting…' : 'Draft'}
+                  <button type="submit" className="primary" disabled={busy || !reason.trim()}>
+                    {busy ? 'Drafting…' : 'Draft the email'}
                   </button>
                 </div>
               </form>
@@ -117,7 +114,7 @@ export default function RefundDraft({ order }) {
                   <button type="button" onClick={close}>
                     Close
                   </button>
-                  <button type="button" onClick={copy}>
+                  <button type="button" className="primary" onClick={copy}>
                     {copied ? 'Copied' : 'Copy'}
                   </button>
                 </div>
