@@ -11,6 +11,7 @@ export default defineConfig({
     proxy: {
       '/api/orders': { target: 'http://localhost:8080', changeOrigin: true },
       '/api/chat': { target: 'http://localhost:8081', changeOrigin: true },
+      '/api/refund-email': { target: 'http://localhost:8081', changeOrigin: true },
       '/api/events': { target: 'http://localhost:8081', changeOrigin: true },
       '/api/confirmations': { target: 'http://localhost:8081', changeOrigin: true },
     },
