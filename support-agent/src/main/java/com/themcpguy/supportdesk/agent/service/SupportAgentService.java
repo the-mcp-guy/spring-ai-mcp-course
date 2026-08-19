@@ -25,6 +25,10 @@ public class SupportAgentService {
                     - If a tool returns an error, tell the user what it said and what
                       they could try instead.
                     - Keep answers to a few sentences unless asked for detail.
+                    - The support team's own notes are files you can read with the filesystem
+                      tools. Use them for carrier delays and claims windows, for escalation, and
+                      for the refund procedure. Call list_allowed_directories to find the
+                      knowledge base, list it to see what is there, then read the file you need.
                     """;
 
     private final ChatClient chatClient;
