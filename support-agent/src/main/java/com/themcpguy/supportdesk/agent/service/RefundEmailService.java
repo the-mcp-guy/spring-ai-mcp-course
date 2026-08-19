@@ -3,7 +3,7 @@ package com.themcpguy.supportdesk.agent.service;
 import java.util.List;
 import java.util.Map;
 
-import io.modelcontextprotocol.client.McpSyncClient;
+import com.themcpguy.supportdesk.agent.mcp.McpResources;
 import io.modelcontextprotocol.spec.McpSchema.GetPromptRequest;
 import io.modelcontextprotocol.spec.McpSchema.PromptMessage;
 import io.modelcontextprotocol.spec.McpSchema.Role;
@@ -18,16 +18,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class RefundEmailService {
 
-    private final McpSyncClient orders;
+    private final McpResources resources;
     private final ChatClient chatClient;
 
-    RefundEmailService(List<McpSyncClient> clients, ChatClient.Builder builder) {
-        this.orders = clients.getFirst();
+    RefundEmailService(McpResources resources, ChatClient.Builder builder) {
+        this.resources = resources;
         this.chatClient = builder.build();
     }
 
     public String draft(String orderId, String reason) {
-        var result = orders.getPrompt(GetPromptRequest.builder("draft_refund_email")
+        var result = resources.orders().getPrompt(GetPromptRequest.builder("draft_refund_email")
                 .arguments(Map.of("orderId", orderId, "reason", reason))
                 .build());
 

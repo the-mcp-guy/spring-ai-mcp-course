@@ -31,6 +31,14 @@ spring:
           connections:
             orders:
               url: http://localhost:8080
+        stdio:
+          connections:
+            knowledge-base:
+              command: npx
+              args:
+                - -y
+                - "@modelcontextprotocol/server-filesystem"
+                - ./support-kb
 server:
   port: 8081
 logging:

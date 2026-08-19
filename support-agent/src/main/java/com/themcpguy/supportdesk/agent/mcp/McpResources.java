@@ -11,14 +11,22 @@ import org.springframework.stereotype.Component;
 @Component
 public class McpResources {
 
-    private final McpSyncClient orders;
+    private final List<McpSyncClient> clients;
 
     McpResources(List<McpSyncClient> clients) {
-        this.orders = clients.getFirst();
+        this.clients = clients;
+    }
+
+    public McpSyncClient orders() {
+        return clients.stream()
+                .filter(client -> "order-service".equals(client.getServerInfo().name()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException(
+                        "Not connected to order-service. Is it running on port 8080?"));
     }
 
     public String read(String uri) {
-        return orders.readResource(ReadResourceRequest.builder(uri).build())
+        return orders().readResource(ReadResourceRequest.builder(uri).build())
                 .contents()
                 .stream()
                 .filter(TextResourceContents.class::isInstance)

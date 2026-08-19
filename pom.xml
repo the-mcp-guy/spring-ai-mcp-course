@@ -43,4 +43,21 @@
     </dependencies>
   </dependencyManagement>
 
+  <build>
+    <pluginManagement>
+      <plugins>
+        <!-- Run every module from the repository root, so the relative path the
+             stdio connection hands to the filesystem server resolves the same way
+             no matter which module started the JVM. -->
+        <plugin>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-maven-plugin</artifactId>
+          <configuration>
+            <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
 </project>
