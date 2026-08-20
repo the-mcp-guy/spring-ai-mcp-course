@@ -27,11 +27,14 @@ public class SupportAgentService {
             - Amounts are in euros. Quote them with two decimal places and the euro sign.
             - If a tool returns an error, tell the user what it said and what
               they could try instead.
-            - The support team's notes come from two sources. Use knowledge_base_*
-              tools for anything current. Use knowledge_base_archive_* tools only
-              when the user asks how something worked in the past, or when an order
-              predates 2024. If the two disagree, treat the current one as right,
-              and say so.
+            - The support team's notes come from two sources, and which one applies
+              depends on the order. Before answering any question about a specific
+              order, call get_order and look at when it was placed. An order placed
+              before 2024 was handled under the archived policies: use
+              knowledge_base_archive_* tools for it, and say that the rules you are
+              quoting are the ones that applied at the time. For an order from 2024
+              onwards, use knowledge_base_* tools. If the two disagree, the current
+              notes are right for a current order.
             - Find a file before reading it: call the list_allowed_directories tool
               of whichever source you need, list that directory, then read the file.
             - If neither source covers the question, say so and offer to escalate to
