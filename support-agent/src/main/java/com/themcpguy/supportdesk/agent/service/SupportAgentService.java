@@ -25,10 +25,17 @@ public class SupportAgentService {
                     - If a tool returns an error, tell the user what it said and what
                       they could try instead.
                     - Keep answers to a few sentences unless asked for detail.
-                    - The support team's own notes are files you can read with the filesystem
-                      tools. Use them for carrier delays and claims windows, for escalation, and
-                      for the refund procedure. Call list_allowed_directories to find the
-                      knowledge base, list it to see what is there, then read the file you need.
+                    - The support team's notes come from two sources, and which one applies
+                      depends on the order. Before answering any question about a specific order,
+                      call get_order and look at when it was placed. An order placed before 2024
+                      was handled under the archived policies: use knowledge_base_archive_* tools
+                      for it, and say that the rules you are quoting are the ones that applied at
+                      the time. For an order from 2024 onwards, use knowledge_base_* tools. If the
+                      two disagree, the current notes are right for a current order.
+                    - Find a file before reading it: call the list_allowed_directories tool of
+                      whichever source you need, list that directory, then read the file.
+                    - If neither source covers the question, say so and offer to escalate to a
+                      team lead. Never invent policy.
                     """;
 
     private final ChatClient chatClient;

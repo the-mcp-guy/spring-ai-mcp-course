@@ -4,6 +4,7 @@ import java.util.List;
 
 import io.modelcontextprotocol.client.McpSyncClient;
 
+import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -11,9 +12,11 @@ import org.springframework.stereotype.Component;
 public class McpInspector implements CommandLineRunner {
 
     private final List<McpSyncClient> clients;
+    private final SyncMcpToolCallbackProvider toolCallbacks;
 
-    McpInspector(List<McpSyncClient> clients) {
+    McpInspector(List<McpSyncClient> clients, SyncMcpToolCallbackProvider toolCallbacks) {
         this.clients = clients;
+        this.toolCallbacks = toolCallbacks;
     }
 
     @Override
@@ -38,6 +41,12 @@ public class McpInspector implements CommandLineRunner {
                 client.listPrompts().prompts().forEach(prompt ->
                         System.out.printf("  prompt   %s%n", prompt.name()));
             }
+        }
+
+        var callbacks = toolCallbacks.getToolCallbacks();
+        System.out.printf("The model is given %d tools:%n", callbacks.length);
+        for (var callback : callbacks) {
+            System.out.printf("  %s%n", callback.getToolDefinition().name());
         }
     }
 }
