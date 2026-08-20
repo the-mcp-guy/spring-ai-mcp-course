@@ -3,6 +3,11 @@ spring:
     name: support-agent
 
   ai:
+    # Both provider starters are on the classpath, so this names the one to use.
+    # Without it, autoconfiguration finds two ChatModel beans and the context fails.
+    model:
+      chat: anthropic          # or: ollama
+
     # Class 7. Swap this block and the POM starter to use a different provider.
     anthropic:
       api-key: ${ANTHROPIC_API_KEY}
