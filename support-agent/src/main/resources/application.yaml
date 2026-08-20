@@ -39,6 +39,12 @@ spring:
                 - -y
                 - "@modelcontextprotocol/server-filesystem"
                 - ./support-kb
+            knowledge-base-archive:
+              command: npx
+              args:
+                - -y
+                - "@modelcontextprotocol/server-filesystem"
+                - ./support-kb-archive
 server:
   port: 8081
 logging:
