@@ -16,8 +16,9 @@ import com.themcpguy.supportdesk.orders.repository.OrderRepository;
  *
  * <p>A real one would call each carrier's tracking API. This one takes a little time and
  * moves some estimates, which is enough for Class 11 to have a job worth reporting
- * progress on. The decision is derived from the order ID rather than randomly, so a test
- * gets the same answer every run.
+ * progress on. Both which orders slip and how far they slip are derived from the order ID
+ * and the shipping date, so a test gets the same answer every run, and so does a second
+ * call on the same data.
  */
 @Service
 public class ShipmentService {
@@ -47,7 +48,11 @@ public class ShipmentService {
 
         ShipmentEmbeddable shipment = entity.getShipment();
         LocalDate current = shipment.getEstimatedDelivery();
-        LocalDate refreshed = recalculate(order.orderId(), current);
+        if (current == null || order.shipment() == null) {
+            return false;
+        }
+
+        LocalDate refreshed = recalculate(order.orderId(), current, order.shipment().shippedOn());
 
         if (refreshed.equals(current)) {
             return false;
@@ -58,13 +63,20 @@ public class ShipmentService {
         return true;
     }
 
-    /** Roughly one order in seven slips by a day or two. */
-    private LocalDate recalculate(String orderId, LocalDate current) {
-        if (current == null) {
-            return null;
+    /**
+     * Roughly one order in seven has slipped, to a date derived from the shipping date.
+     *
+     * <p>The shipping date never moves, so a second call on the same order arrives at the same
+     * answer and leaves the estimate where it is. Deriving from the current estimate instead
+     * would push the date further out on every call, which would make the tool's
+     * idempotentHint a false claim.
+     */
+    private LocalDate recalculate(String orderId, LocalDate current, LocalDate shippedOn) {
+        if (shippedOn == null) {
+            return current;
         }
         int hash = Math.abs(orderId.hashCode());
-        return hash % 7 == 0 ? current.plusDays(1 + hash % 2) : current;
+        return hash % 7 == 0 ? shippedOn.plusDays(7 + hash % 2) : current;
     }
 
     private void pauseAsThoughCallingACarrier() {
