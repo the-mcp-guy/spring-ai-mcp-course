@@ -33,5 +33,5 @@ Internal. How to deal with each carrier when something has gone wrong.
 
 ## Choosing not to claim
 
-Below £25 the paperwork costs more than the claim returns. Refund the customer and close
-it. Above £25, always claim.
+Below €25 the paperwork costs more than the claim returns. Refund the customer and close
+it. Above €25, always claim.
