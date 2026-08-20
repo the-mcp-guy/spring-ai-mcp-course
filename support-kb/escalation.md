@@ -4,7 +4,7 @@ Internal. When to stop handling something yourself.
 
 ## Escalate to a team lead
 
-- The order value is over £500 and the customer wants a refund
+- The order value is over €500 and the customer wants a refund
 - The customer has contacted us about the same order three times or more
 - A replacement has already been sent and has also gone wrong
 - The customer mentions a chargeback, their bank, or legal action

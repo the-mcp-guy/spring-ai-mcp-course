@@ -24,4 +24,4 @@ carrier accounts, and the claims windows below have long expired.
 
 Nothing can be claimed and nothing can be traced. If a customer contacts us about an order
 this old, treat it as a goodwill decision rather than a carrier problem, and escalate
-anything over £50 to a team lead.
+anything over €50 to a team lead.
