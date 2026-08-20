@@ -1,24 +1,26 @@
 # Support Desk: Spring AI + MCP course
 
 > [!NOTE]
-> **This branch is Class 9.** It implements
-> [Class 9: A Server We Did Not Write](https://themcpguy.com/docs/mcp-spring-ai/a-server-we-did-not-write/),
-> which connects the agent to a second MCP server that this repository does not
-> contain: the reference filesystem server from npm, launched over stdio with `npx`
-> and pointed at `support-kb/`, the support team's notes. The model reads those notes
-> with the server's file tools when a question needs them. Classes 2 to 5 built the
-> server side:
+> **This branch is Class 10.** It implements
+> [Class 10: Several Servers at Once](https://themcpguy.com/docs/mcp-spring-ai/several-servers/),
+> which connects a third MCP server, the same filesystem server again over
+> `support-kb-archive/`, and deals with what that brings: colliding tool names, solved
+> with a prefix generator that names tools after their connection, and a tool filter
+> that keeps only the read-only file tools, so the model sees ten tools instead of
+> thirty-two. Classes 2 to 5 built the server side:
 > [tools](https://themcpguy.com/docs/mcp-spring-ai/rest-app-to-mcp-server),
 > [more tools](https://themcpguy.com/docs/mcp-spring-ai/tools-in-depth),
 > [resources](https://themcpguy.com/docs/mcp-spring-ai/resources) and
 > [prompts](https://themcpguy.com/docs/mcp-spring-ai/prompts-and-completion),
 > [Class 6](https://themcpguy.com/docs/mcp-spring-ai/connecting-a-client) connected the
 > client, [Class 7](https://themcpguy.com/docs/mcp-spring-ai/tools-to-a-model) gave it
-> a model, and
+> a model,
 > [Class 8](https://themcpguy.com/docs/mcp-spring-ai/consuming-resources-and-prompts/)
-> put the server's resources and prompts to work on the client side. `main` stays at
-> the course starting point, with no AI or MCP code at all, so clone that branch to
-> follow along from Class 1.
+> put the server's resources and prompts to work on the client side, and
+> [Class 9](https://themcpguy.com/docs/mcp-spring-ai/a-server-we-did-not-write/)
+> connected the first filesystem server over `support-kb/`. `main` stays at the course
+> starting point, with no AI or MCP code at all, so clone that branch to follow along
+> from Class 1.
 
 Companion repository for the [Spring AI + MCP course](https://themcpguy.com/docs/mcp-spring-ai/why-spring-ai)
 on themcpguy.com.
@@ -34,10 +36,10 @@ time on MCP rather than on Spring Boot.
 order-service/          the application. MCP is added to it from Class 2.
 support-agent/          the agent: an MCP client since Class 6, with a model since Class 7,
                         reading resources and running prompts since Class 8, talking to
-                        a second server since Class 9.
+                        a second server since Class 9 and a third since Class 10.
 frontend/               React + Vite. Never taught, never changed.
 support-kb/             the support team's notes, served over MCP since Class 9
-support-kb-archive/     the pre-2024 versions of the same notes, added in Class 10
+support-kb-archive/     the pre-2024 versions of the same notes, served since Class 10
 ```
 
 The product policies live on the classpath at
@@ -49,7 +51,8 @@ restart.
 
 - JDK 21 or later
 - Maven 3.9 or later
-- Node.js 20 or later, for the frontend and, from Class 9, for one MCP server on npm
+- Node.js 20 or later, for the frontend and, from Class 9, for the filesystem MCP
+  server on npm
 - An API key from Anthropic or OpenAI, **or** [Ollama](https://ollama.com) running
   locally. Needed from Class 7 on: the agent hands the order tools to a model.
 
@@ -117,30 +120,38 @@ mvn -pl support-agent spring-boot:run -Dspring-boot.run.profiles=cli
 ```
 
 On startup it prints what every connected server offers, and since this class there are
-two. The agent still reaches the order service over HTTP, and it now also starts the
-reference filesystem server from npm as a child process and talks to it over stdio, its
-standard input and output. Nothing gets installed for that:
-`npx -y @modelcontextprotocol/server-filesystem ./support-kb` fetches the server on
-first use and hands it the one directory it may touch. The connection is declared in
-`support-agent/src/main/resources/application.yaml` next to the HTTP one, and its
-relative path resolves at the repository root because the parent `pom.xml` pins the
-Spring Boot plugin's working directory there. On Windows `npx` needs a `cmd.exe /c`
-wrapper; the lesson shows the variant.
+three connections. The agent reaches the order service over HTTP, and it starts the
+reference filesystem server from npm twice, as child processes it talks to over stdio:
+once for `support-kb/`, the current notes, and once for `support-kb-archive/`, the
+notes as they stood before 2024. Nothing gets installed for that:
+`npx -y @modelcontextprotocol/server-filesystem <directory>` fetches the server on
+first use and hands it the one directory it may touch. The connections are declared in
+`support-agent/src/main/resources/application.yaml`, and their relative paths resolve
+at the repository root because the parent `pom.xml` pins the Spring Boot plugin's
+working directory there. On Windows `npx` needs a `cmd.exe /c` wrapper; the Class 9
+lesson shows the variant.
+
+Two copies of the same server offer the same fourteen tool names, so this class also
+decides what the model is given. `ServerNamePrefixGenerator` names each file tool
+after its connection, `knowledge_base_read_text_file` against
+`knowledge_base_archive_read_text_file`, and leaves the order-service tools unprefixed.
+`ReadOnlyKnowledgeBaseFilter` then drops every file tool that can change the notes,
+keeping three read-only tools per connection. The inspector prints the per-connection
+listings as before, with `secure-filesystem-server 0.2.0` now appearing twice, and
+closes with the result of both:
 
 ```
-Connected to secure-filesystem-server 0.2.0
-  tool     read_file
-  tool     read_text_file
-  ... twelve more file tools ...
-Connected to order-service 1.0.0
-  tool     get_customer_orders
-  tool     get_order
-  tool     get_orders_by_status
-  tool     update_order_status
-  resource policy://shipping
-  resource policy://returns
-  template order://{orderId}
-  prompt   draft_refund_email
+The model is given 10 tools:
+  knowledge_base_archive_read_text_file
+  knowledge_base_archive_list_directory
+  knowledge_base_archive_list_allowed_directories
+  knowledge_base_read_text_file
+  knowledge_base_list_directory
+  knowledge_base_list_allowed_directories
+  get_customer_orders
+  get_order
+  get_orders_by_status
+  update_order_status
 ```
 
 then it waits for input. Ask about an order; type `quit` to leave. Every fact in an
@@ -150,7 +161,7 @@ happens. The order service must be up first, on the port named in
 `resources/list`, so the inspector asks for them separately with
 `resources/templates/list`.
 
-A question that needs the notes shows the two servers working together. Ask
+A question that needs the notes shows the servers working together. Ask
 
 ```
 ORD-10001 was shipped with DHL and has not arrived. What should I do?
@@ -162,6 +173,17 @@ the refund procedure live in the same directory, so "When do I escalate a delaye
 to a manager?" is answered from `escalation.md` without touching the order service. Ask
 what is in `/etc/passwd` and the answer is a refusal: the filesystem server does not
 reach outside the directory it was given.
+
+The archive earns its place with orders that predate 2024. Ask
+
+```
+A customer has come back about ORD-10004. They say they returned it in 2023 and were
+never refunded. What did our process say at the time?
+```
+
+and the model calls `get_order`, sees an order from November 2023, and reads the refund
+process from the archive rather than from the current notes: the system prompt tells it
+to pick the source by the order's date, and to say which rules it is quoting.
 
 Started without the `cli` profile,
 
@@ -222,16 +244,19 @@ is caught before it reaches a lesson that quotes the numbers.
 
 ## The data
 
-Three orders are fixed because the course quotes them:
+Four orders are fixed because the course quotes them:
 
 | Order       | Status    | Customer                   | Total   |
 |-------------|-----------|----------------------------|---------|
 | `ORD-10001` | SHIPPED   | Ana Ruiz (`CUST-42`)       | €179.99 |
 | `ORD-10002` | PENDING   | Marcus Adeyemi (`CUST-17`) | €34.99  |
 | `ORD-10003` | DELIVERED | Ana Ruiz (`CUST-42`)       | €599.00 |
+| `ORD-10004` | DELIVERED | Marcus Adeyemi (`CUST-17`) | €89.99  |
 
-The other 197 are generated from the index rather than randomly, so every run produces the
-same data. The spread is 87 shipped, 50 delivered, 30 pending, 25 processing and
+`ORD-10004` was delivered in November 2023 with Parcelforce, a carrier only the
+archived notes cover, so Class 10 has an order that predates the 2024 policy change.
+The other 196 are generated from the index rather than randomly, so every run produces
+the same data. The spread is 87 shipped, 50 delivered, 30 pending, 25 processing and
 8 cancelled.
 
 The database is H2 in memory and is seeded at startup, so restarting throws away anything
