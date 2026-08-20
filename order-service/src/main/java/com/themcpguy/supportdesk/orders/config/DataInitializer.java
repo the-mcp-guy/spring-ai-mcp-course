@@ -35,7 +35,7 @@ public class DataInitializer {
     private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
     private static final int ORDER_COUNT = 200;
-    private static final int FIXED_ORDERS = 3;
+    private static final int FIXED_ORDERS = 4;
     private static final LocalDate FIRST_ORDER_DATE = LocalDate.of(2026, 1, 6);
 
     private static final String[][] CATALOGUE = {
@@ -104,7 +104,7 @@ public class DataInitializer {
 
         for (int i = 0; i < ORDER_COUNT; i++) {
             String orderId = "ORD-%d".formatted(10001 + i);
-            // The first three are replaced below; the plan covers the other 197.
+            // The first four are replaced below; the plan covers the other 196.
             OrderStatus status = i < FIXED_ORDERS ? OrderStatus.PENDING : statuses.get(i - FIXED_ORDERS);
             CustomerEntity customer = customers.get((i * 13) % customers.size());
             LocalDate created = FIRST_ORDER_DATE.plusDays((i * 3L) % 150);
@@ -123,12 +123,13 @@ public class DataInitializer {
         orders.set(0, fixedFirstOrder(customers));
         orders.set(1, fixedSecondOrder(customers));
         orders.set(2, fixedThirdOrder(customers));
+        orders.set(3, fixedFourthOrder(customers));
         return orders;
     }
 
     /**
-     * Statuses for the 197 generated orders, mixed by a fixed stride so they are not in
-     * blocks. The three fixed orders add one SHIPPED, one PENDING and one DELIVERED, so
+     * Statuses for the 196 generated orders, mixed by a fixed stride so they are not in
+     * blocks. The four fixed orders add one SHIPPED, one PENDING and two DELIVERED, so
      * the totals across all 200 come to 87 shipped, 50 delivered, 30 pending,
      * 25 processing and 8 cancelled.
      */
@@ -137,7 +138,7 @@ public class DataInitializer {
 
         List<OrderStatus> plan = new ArrayList<>();
         add(plan, OrderStatus.SHIPPED, 86);
-        add(plan, OrderStatus.DELIVERED, 49);
+        add(plan, OrderStatus.DELIVERED, 48);
         add(plan, OrderStatus.PENDING, 29);
         add(plan, OrderStatus.PROCESSING, 25);
         add(plan, OrderStatus.CANCELLED, 8);
@@ -213,6 +214,23 @@ public class DataInitializer {
                 Instant.parse("2026-05-08T09:15:00Z"),
                 new ShipmentEmbeddable("UPS", "UPS-80412",
                         LocalDate.of(2026, 5, 3), LocalDate.of(2026, 5, 8)));
+    }
+
+    /**
+     * An order from before the 2024 policy change, for Class 10. The carrier is one the
+     * current notes no longer cover, and the returns window that applied to it is the
+     * 14-day one in the archived process, not today's 30 days.
+     */
+    private OrderEntity fixedFourthOrder(List<CustomerEntity> customers) {
+        List<OrderItemEmbeddable> items = List.of(
+                new OrderItemEmbeddable("PROD-001", "Wireless Keyboard", 1, new BigDecimal("89.99")));
+
+        return new OrderEntity("ORD-10004", OrderStatus.DELIVERED, byId(customers, "CUST-17"), items,
+                new BigDecimal("89.99"),
+                Instant.parse("2023-11-14T10:20:00Z"),
+                Instant.parse("2023-11-20T08:05:00Z"),
+                new ShipmentEmbeddable("Parcelforce", "PF-40817326",
+                        LocalDate.of(2023, 11, 15), LocalDate.of(2023, 11, 20)));
     }
 
     private CustomerEntity byId(List<CustomerEntity> customers, String id) {
