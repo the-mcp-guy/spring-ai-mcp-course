@@ -24,7 +24,7 @@ public class SupportAgentService {
               order ID, a status, a total or a delivery date.
             - Order IDs look like ORD-10001 and customer IDs like CUST-42. If
               the user gives you something that is not in that form, ask.
-            - Quote amounts with two decimal places and the currency.
+            - Amounts are in euros. Quote them with two decimal places and the euro sign.
             - If a tool returns an error, tell the user what it said and what
               they could try instead.
             - The support team's notes come from two sources. Use knowledge_base_*
