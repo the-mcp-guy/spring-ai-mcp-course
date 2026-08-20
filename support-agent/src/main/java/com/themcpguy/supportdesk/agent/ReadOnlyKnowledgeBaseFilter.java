@@ -19,7 +19,8 @@ import org.springframework.stereotype.Component;
 public class ReadOnlyKnowledgeBaseFilter implements McpToolFilter {
 
     private static final Set<String> ALLOWED_FILE_TOOLS =
-            Set.of("read_text_file", "read_file", "list_directory", "search_files", "directory_tree");
+            Set.of("read_text_file", "read_file", "list_directory", "search_files",
+                    "directory_tree", "list_allowed_directories");
 
     @Override
     public boolean test(McpConnectionInfo connectionInfo, Tool tool) {
