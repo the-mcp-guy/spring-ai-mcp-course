@@ -9,6 +9,8 @@ import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
+import java.util.Map;
+
 @Service
 public class SupportAgentService {
 
@@ -54,6 +56,7 @@ public class SupportAgentService {
     public String chat(String conversationId, String userMessage) {
         return chatClient.prompt()
                 .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId))
+                .toolContext(Map.of("progressToken", conversationId))
                 .user(userMessage)
                 .call()
                 .content();
@@ -70,6 +73,7 @@ public class SupportAgentService {
 
         return chatClient.prompt()
                 .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId))
+                .toolContext(Map.of("progressToken", conversationId))
                 .system(system -> system.text("""
                     {base}
 
@@ -92,6 +96,7 @@ public class SupportAgentService {
     public Flux<String> chatStream(String conversationId, String userMessage) {
         return chatClient.prompt()
                 .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId))
+                .toolContext(Map.of("progressToken", conversationId))
                 .user(userMessage)
                 .stream()
                 .content();
