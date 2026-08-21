@@ -1,13 +1,14 @@
 # Support Desk: Spring AI + MCP course
 
 > [!NOTE]
-> **This branch is Class 10.** It implements
-> [Class 10: Several Servers at Once](https://themcpguy.com/docs/mcp-spring-ai/several-servers/),
-> which connects a third MCP server, the same filesystem server again over
-> `support-kb-archive/`, and deals with what that brings: colliding tool names, solved
-> with a prefix generator that names tools after their connection, and a tool filter
-> that keeps only the read-only file tools, so the model sees ten tools instead of
-> thirty-two. Classes 2 to 5 built the server side:
+> **This branch is Class 11.** It implements
+> [Class 11: Progress and Logging](https://themcpguy.com/docs/mcp-spring-ai/progress-and-logging/),
+> which lets a long-running tool report while it works: a new `recheck_shipments`
+> tool on the order service sends progress and log notifications through
+> `McpSyncRequestContext`, and the agent receives them with `@McpProgress` and
+> `@McpLogging` handlers. Progress is forwarded to the frontend's progress bar over
+> a server-sent events stream at `/api/events`; log messages print in the agent's
+> terminal. Classes 2 to 5 built the server side:
 > [tools](https://themcpguy.com/docs/mcp-spring-ai/rest-app-to-mcp-server),
 > [more tools](https://themcpguy.com/docs/mcp-spring-ai/tools-in-depth),
 > [resources](https://themcpguy.com/docs/mcp-spring-ai/resources) and
@@ -16,9 +17,11 @@
 > client, [Class 7](https://themcpguy.com/docs/mcp-spring-ai/tools-to-a-model) gave it
 > a model,
 > [Class 8](https://themcpguy.com/docs/mcp-spring-ai/consuming-resources-and-prompts/)
-> put the server's resources and prompts to work on the client side, and
+> put the server's resources and prompts to work on the client side,
 > [Class 9](https://themcpguy.com/docs/mcp-spring-ai/a-server-we-did-not-write/)
-> connected the first filesystem server over `support-kb/`. `main` stays at the course
+> connected the first filesystem server over `support-kb/`, and
+> [Class 10](https://themcpguy.com/docs/mcp-spring-ai/several-servers/) added the
+> archive server and tamed the resulting tool list. `main` stays at the course
 > starting point, with no AI or MCP code at all, so clone that branch to follow along
 > from Class 1.
 
@@ -36,7 +39,8 @@ time on MCP rather than on Spring Boot.
 order-service/          the application. MCP is added to it from Class 2.
 support-agent/          the agent: an MCP client since Class 6, with a model since Class 7,
                         reading resources and running prompts since Class 8, talking to
-                        a second server since Class 9 and a third since Class 10.
+                        a second server since Class 9 and a third since Class 10, and
+                        relaying server progress to the browser since Class 11.
 frontend/               React + Vite. Never taught, never changed.
 support-kb/             the support team's notes, served over MCP since Class 9
 support-kb-archive/     the pre-2024 versions of the same notes, served since Class 10
@@ -67,15 +71,19 @@ mvn -pl order-service spring-boot:run
   empty password)
 
 From Class 2 this same application also publishes an MCP endpoint on `/mcp`. On this branch
-it registers four tools, all defined in
+it registers five tools, all defined in
 `order-service/src/main/java/com/themcpguy/supportdesk/orders/mcp/OrderTools.java`:
 
-| Tool                   | What it does                       | Read only |
-|------------------------|------------------------------------|-----------|
-| `get_order`            | One order by ID                    | yes       |
-| `get_customer_orders`  | Every order for one customer       | yes       |
-| `get_orders_by_status` | Every order in one status          | yes       |
-| `update_order_status`  | Move an order to a new status      | no        |
+| Tool                   | What it does                                  | Read only |
+|------------------------|-----------------------------------------------|-----------|
+| `get_order`            | One order by ID                               | yes       |
+| `get_customer_orders`  | Every order for one customer                  | yes       |
+| `get_orders_by_status` | Every order in one status                     | yes       |
+| `update_order_status`  | Move an order to a new status                 | no        |
+| `recheck_shipments`    | Refresh estimates for every in-transit order  | no        |
+
+`recheck_shipments` is the Class 11 tool: it walks every shipped order and reports
+progress and log messages through the MCP request context while it does.
 
 From Class 4 it also publishes resources, defined in `PolicyResources.java` and
 `OrderResources.java` in the same package:
@@ -95,7 +103,7 @@ From Class 5 it publishes one prompt as well, in `RefundPrompts.java`:
 The startup log confirms all of it:
 
 ```
-Registered tools: 4
+Registered tools: 5
 Registered resources: 2
 Registered prompts: 1
 Registered completions: 1
@@ -141,7 +149,7 @@ listings as before, with `secure-filesystem-server 0.2.0` now appearing twice, a
 closes with the result of both:
 
 ```
-The model is given 10 tools:
+The model is given 11 tools:
   knowledge_base_archive_read_text_file
   knowledge_base_archive_list_directory
   knowledge_base_archive_list_allowed_directories
@@ -151,6 +159,7 @@ The model is given 10 tools:
   get_customer_orders
   get_order
   get_orders_by_status
+  recheck_shipments
   update_order_status
 ```
 
@@ -184,6 +193,34 @@ never refunded. What did our process say at the time?
 and the model calls `get_order`, sees an order from November 2023, and reads the refund
 process from the archive rather than from the current notes: the system prompt tells it
 to pick the source by the order's date, and to say which rules it is quoting.
+
+Since Class 11 a long tool call reports while it runs. Ask
+
+```
+Refresh the delivery estimates for everything that's still in transit
+```
+
+and the model calls `recheck_shipments`, which walks all 87 shipped orders. The server
+sends a log line, one progress notification per order, and a closing log line, and the
+agent's `@McpProgress` and `@McpLogging` handlers print them as they arrive:
+
+```
+  INFO Rechecking 87 shipments
+  [cli] 1%
+  [cli] 2%
+  ...
+  [cli] 100%
+  INFO Finished. 13 estimates changed.
+```
+
+The token in brackets is the conversation ID the agent put into the tool context. The
+progress handler uses it to tell conversations apart; in web mode it routes each
+percentage over the `/api/events` stream to the browser tab that asked, and the
+frontend's progress bar fills as they arrive. Log messages carry a level and text but
+no token, so they stay in the terminal. Ask the same question again and the summary
+says `0 estimates changed`: the estimate is derived from the shipping date, so a
+second pass arrives at the same answer, which is what the tool's idempotent hint
+claims.
 
 Started without the `cli` profile,
 
@@ -231,7 +268,8 @@ Open `http://localhost:5173`. The order list works immediately, and with the age
 running in web mode the chat panel talks to it on port 8081. Selecting an order attaches
 it to the conversation, and the **Draft refund email** button on a shipped, delivered or
 cancelled order calls `/api/refund-email`; both are answered by the agent from Class 8
-on. The progress bar and confirmation dialog come alive in Classes 11 and 12.
+on. Since Class 11 the progress bar in the chat panel fills while the server rechecks
+shipments in bulk. The confirmation dialog comes alive in Class 12.
 
 ## Running the tests
 
