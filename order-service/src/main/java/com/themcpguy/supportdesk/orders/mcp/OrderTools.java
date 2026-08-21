@@ -1,7 +1,9 @@
 package com.themcpguy.supportdesk.orders.mcp;
 
+import com.themcpguy.supportdesk.orders.service.ShipmentService;
 import org.springframework.ai.mcp.annotation.McpTool;
 import org.springframework.ai.mcp.annotation.McpToolParam;
+import org.springframework.ai.mcp.annotation.context.McpSyncRequestContext;
 import org.springframework.stereotype.Component;
 
 import com.themcpguy.supportdesk.orders.domain.Order;
@@ -13,9 +15,11 @@ import java.util.List;
 public class OrderTools {
 
     private final OrderService orderService;
+    private final ShipmentService shipmentService;
 
-    OrderTools(OrderService orderService) {
+    OrderTools(OrderService orderService, ShipmentService shipmentService) {
         this.orderService = orderService;
+        this.shipmentService = shipmentService;
     }
 
     @McpTool(
@@ -93,5 +97,38 @@ public class OrderTools {
             @McpToolParam(description = "The new status") String newStatus) {
 
         return orderService.updateStatus(orderId, newStatus);
+    }
+
+    @McpTool(
+            name = "recheck_shipments",
+            description = """
+        Refresh the delivery estimate for every order that has shipped but not
+        arrived. Takes a while. Returns a summary of what changed.
+        Use this when the user asks to update or refresh delivery dates in bulk.
+        """,
+            annotations = @McpTool.McpAnnotations(
+                    readOnlyHint = false,
+                    destructiveHint = false,
+                    idempotentHint = true,
+                    openWorldHint = true))
+    public String recheckShipments(McpSyncRequestContext context) {
+
+        List<Order> inTransit = orderService.findByStatus("SHIPPED");
+        context.info("Rechecking %d shipments".formatted(inTransit.size()));
+
+        int changed = 0;
+        for (int i = 0; i < inTransit.size(); i++) {
+            Order order = inTransit.get(i);
+
+            if (shipmentService.refreshEstimate(order)) {
+                changed++;
+                context.debug("Updated estimate for %s".formatted(order.orderId()));
+            }
+
+            context.progress((i + 1) * 100 / inTransit.size());
+        }
+
+        context.info("Finished. %d estimates changed.".formatted(changed));
+        return "Rechecked %d shipments, %d estimates changed.".formatted(inTransit.size(), changed);
     }
 }
