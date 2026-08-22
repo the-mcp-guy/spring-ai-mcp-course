@@ -1,13 +1,10 @@
 package com.themcpguy.supportdesk.agent.web;
 
+import com.themcpguy.supportdesk.agent.mcp.BrowserConfirmationHandler;
 import com.themcpguy.supportdesk.agent.service.BrowserChannel;
 import com.themcpguy.supportdesk.agent.service.RefundEmailService;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.ResourceAccessException;
 
 import com.themcpguy.supportdesk.agent.service.SupportAgentService;
@@ -19,24 +16,34 @@ public class SupportController {
     private final SupportAgentService agent;
     private final RefundEmailService refundEmails;
     private final BrowserChannel channel;
+    private final BrowserConfirmationHandler confirmationHandler;
 
     SupportController(SupportAgentService agent, RefundEmailService refundEmails,
-                      BrowserChannel channel) {
+                      BrowserChannel channel, BrowserConfirmationHandler confirmationHandler) {
         this.agent = agent;
         this.refundEmails = refundEmails;
         this.channel = channel;
+        this.confirmationHandler = confirmationHandler;
     }
 
     public record RefundRequest(String orderId, String reason) {}
     public record ChatRequest(String conversationId, String message, String orderId) {}
     public record ChatReply(String reply) {}
+    public record AnswerRequest(boolean confirmed, String note) {}
+
+    /** Wakes the thread parked inside BrowserConfirmationHandler. */
+    @PostMapping("/api/confirmations/{id}")
+    public void answer(@PathVariable String id, @RequestBody AnswerRequest body) {
+        confirmationHandler.answer(id, body.confirmed(), body.note());
+    }
 
     @PostMapping("/api/chat")
     public ChatReply chat(@RequestBody ChatRequest request) {
         try {
             return new ChatReply(agent.chatWithPolicy(
                     request.conversationId(), request.message(), request.orderId()));
-        } catch (ResourceAccessException e) {
+        }
+        catch (ResourceAccessException e) {
             return new ChatReply("The model did not answer in time, so the request was stopped. Ask again in a moment.");
         }
     }
@@ -51,4 +58,5 @@ public class SupportController {
     public SseEmitter events(@RequestParam String conversationId) {
         return channel.open(conversationId);
     }
+
 }

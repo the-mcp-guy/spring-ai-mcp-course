@@ -37,4 +37,12 @@ public class BrowserChannel {
             emitters.remove(conversationId, emitter);
         }
     }
+
+    public void ask(String conversationId, String id, String message, Object schema, long seconds) {
+        send(conversationId, "confirmation", Map.of("id", id, "message", message, "seconds", seconds));
+    }
+
+    public boolean isWatching(String conversationId) {
+        return emitters.containsKey(conversationId);
+    }
 }
