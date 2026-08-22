@@ -13,6 +13,7 @@ import io.modelcontextprotocol.spec.McpSchema.ElicitResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.mcp.annotation.McpElicitation;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Component;
  * startup.
  */
 @Component
+@Profile("!cli")
 public class BrowserConfirmationHandler {
 
     private static final Logger log = LoggerFactory.getLogger(BrowserConfirmationHandler.class);
