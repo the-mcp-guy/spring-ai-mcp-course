@@ -17,9 +17,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  * holds one SSE connection per conversation and pushes to it.
  */
 @Component
-public class ConfirmationChannel {
+public class BrowserChannel {
 
-    private static final Logger log = LoggerFactory.getLogger(ConfirmationChannel.class);
+    private static final Logger log = LoggerFactory.getLogger(BrowserChannel.class);
 
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
@@ -38,10 +38,6 @@ public class ConfirmationChannel {
 
     public void progress(String conversationId, int percent) {
         send(conversationId, "progress", Map.of("percent", percent));
-    }
-
-    public void logMessage(String conversationId, String level, String message) {
-        send(conversationId, "log", Map.of("level", level, "message", message));
     }
 
     private void send(String conversationId, String event, Object payload) {

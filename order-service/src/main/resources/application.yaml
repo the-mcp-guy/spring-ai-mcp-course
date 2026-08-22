@@ -5,6 +5,8 @@ spring:
   ai:
     mcp:
       server:
+        # Class 12: long enough for a person to answer a confirmation.
+        request-timeout: 90s
         name: order-service
         version: 1.0.0
         protocol: STREAMABLE
