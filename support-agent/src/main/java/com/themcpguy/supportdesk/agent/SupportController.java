@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
@@ -46,6 +47,9 @@ public class SupportController {
         conversations.set(request.conversationId());
         try {
             return new ChatReply(agent.chatWithPolicy(request.conversationId(), request.message()));
+        }
+        catch (ResourceAccessException e) {
+            return new ChatReply("The model did not answer in time, so the request was stopped. Ask again in a moment.");
         }
         finally {
             conversations.clear();
