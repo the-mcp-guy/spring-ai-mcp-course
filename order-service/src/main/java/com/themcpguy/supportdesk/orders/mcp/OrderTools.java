@@ -193,7 +193,9 @@ public class OrderTools {
                 yield "Order %s is cancelled and a refund of %.2f has been started."
                         .formatted(orderId, order.totalAmount());
             }
-            case DECLINE -> "Order %s was not cancelled: the user said no.".formatted(orderId);
+            case DECLINE -> ("Order %s was not cancelled. The client declined the confirmation, "
+                    + "either because the person said no or because the question could not be presented.")
+                    .formatted(orderId);
             case CANCEL -> "Order %s was not cancelled: the user dismissed the question.".formatted(orderId);
         };
     }
