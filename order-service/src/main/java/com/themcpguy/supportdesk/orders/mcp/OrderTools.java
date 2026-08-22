@@ -177,8 +177,10 @@ public class OrderTools {
         }
 
         var answer = context.elicit(
-                spec -> spec.message("Cancel order %s for %s? The total is %.2f and a refund will be started."
-                        .formatted(orderId, order.customer().name(), order.totalAmount())),
+                spec -> spec
+                        .message("Cancel order %s for %s? The total is %.2f and a refund will be started."
+                                .formatted(orderId, order.customer().name(), order.totalAmount()))
+                        .meta("conversationId", context.request().progressToken()),
                 CancellationConfirmation.class);
 
         return switch (answer.action()) {

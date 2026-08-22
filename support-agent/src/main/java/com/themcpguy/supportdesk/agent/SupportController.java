@@ -23,18 +23,15 @@ public class SupportController {
     private final RefundEmailService refundEmails;
     private final BrowserChannel channel;
     private final BrowserConfirmationHandler confirmationHandler;
-    private final ConversationContext conversations;
 
     SupportController(SupportAgentService agent,
                       RefundEmailService refundEmails,
                       BrowserChannel channel,
-                      BrowserConfirmationHandler confirmationHandler,
-                      ConversationContext conversations) {
+                      BrowserConfirmationHandler confirmationHandler) {
         this.agent = agent;
         this.refundEmails = refundEmails;
         this.channel = channel;
         this.confirmationHandler = confirmationHandler;
-        this.conversations = conversations;
     }
 
     public record ChatRequest(String conversationId, String message, String orderId) {}
@@ -44,16 +41,12 @@ public class SupportController {
 
     @PostMapping("/api/chat")
     public ChatReply chat(@RequestBody ChatRequest request) {
-        conversations.set(request.conversationId());
         try {
             return new ChatReply(agent.chatWithPolicy(
                     request.conversationId(), request.message(), request.orderId()));
         }
         catch (ResourceAccessException e) {
             return new ChatReply("The model did not answer in time, so the request was stopped. Ask again in a moment.");
-        }
-        finally {
-            conversations.clear();
         }
     }
 
