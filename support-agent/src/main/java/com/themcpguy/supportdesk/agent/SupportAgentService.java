@@ -75,8 +75,14 @@ public class SupportAgentService {
      * <p>The order comes from a tool the model chooses to call. The policy comes from a
      * resource our code attached, because nearly every support conversation needs it.
      */
-    public String chatWithPolicy(String conversationId, String userMessage) {
+    public String chatWithPolicy(String conversationId, String userMessage, String orderId) {
         String returnsPolicy = resources.read("policy://returns");
+        String orderBlock = orderId == null || orderId.isBlank() ? "" : """
+
+                The conversation was opened from the order below. Questions about "this
+                order" or "the customer" refer to it.
+
+                """ + resources.orderResource(orderId);
 
         return chatClient.prompt()
                 .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId))
@@ -93,7 +99,9 @@ public class SupportAgentService {
 
                         ---
                         {policy}
-                        """).param("base", BASE_SYSTEM).param("policy", returnsPolicy))
+                        {order}
+                        """).param("base", BASE_SYSTEM).param("policy", returnsPolicy)
+                                .param("order", orderBlock))
                 .user(userMessage)
                 .call()
                 .content();

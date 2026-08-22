@@ -36,6 +36,10 @@ public class McpResources {
                 .orElseThrow(() -> new IllegalStateException("No text contents at " + uri));
     }
 
+    public String orderResource(String orderId) {
+        return read("order://" + orderId);
+    }
+
     /** Class 5's template, filled in by the client. */
     public String order(String orderId) {
         return read("order://" + orderId);
