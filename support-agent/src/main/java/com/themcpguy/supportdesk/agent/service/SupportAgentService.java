@@ -38,6 +38,9 @@ public class SupportAgentService {
                       whichever source you need, list that directory, then read the file.
                     - If neither source covers the question, say so and offer to escalate to a
                       team lead. Never invent policy.
+                    - Some tools ask the user to confirm before they act. When the user asks for
+                      such an action, call the tool and let it ask its own question. Do not ask
+                      the user to confirm beforehand.
                     """;
 
     private final ChatClient chatClient;

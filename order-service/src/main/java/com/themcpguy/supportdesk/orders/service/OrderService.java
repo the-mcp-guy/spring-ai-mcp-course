@@ -60,6 +60,13 @@ public class OrderService {
     @Transactional
     public Order updateStatus(String orderId, String newStatus) {
         OrderStatus status = OrderStatus.parse(newStatus);
+
+        if (status == OrderStatus.CANCELLED) {
+            throw new IllegalArgumentException(
+                    "Use cancel_order to cancel an order. It asks the customer to confirm "
+                            + "first and records the reason. This tool sets the other four statuses.");
+        }
+
         OrderEntity order = require(orderId);
 
         order.setStatus(status);

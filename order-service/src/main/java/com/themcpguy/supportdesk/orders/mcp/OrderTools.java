@@ -4,6 +4,7 @@ import com.themcpguy.supportdesk.orders.service.ShipmentService;
 import org.springframework.ai.mcp.annotation.McpTool;
 import org.springframework.ai.mcp.annotation.McpToolParam;
 import org.springframework.ai.mcp.annotation.context.McpSyncRequestContext;
+import org.springframework.ai.mcp.annotation.context.StructuredElicitResult;
 import org.springframework.stereotype.Component;
 
 import com.themcpguy.supportdesk.orders.domain.Order;
@@ -84,7 +85,8 @@ public class OrderTools {
             name = "update_order_status",
             description = """
             Move an order to a new status.
-            Valid statuses are PENDING, PROCESSING, SHIPPED, DELIVERED and CANCELLED.
+            Valid statuses are PENDING, PROCESSING, SHIPPED and DELIVERED.
+            To cancel an order, use cancel_order instead: it asks the customer to confirm.
             Returns the updated order.
             """,
             annotations = @McpTool.McpAnnotations(
@@ -130,5 +132,57 @@ public class OrderTools {
 
         context.info("Finished. %d estimates changed.".formatted(changed));
         return "Rechecked %d shipments, %d estimates changed.".formatted(inTransit.size(), changed);
+    }
+
+    @McpTool(
+            name = "cancel_order",
+            description = """
+        Cancel an order and start a refund. The user is asked to confirm before
+        anything changes. Only PENDING and PROCESSING orders can be cancelled.
+        """,
+            annotations = @McpTool.McpAnnotations(
+                    readOnlyHint = false,
+                    destructiveHint = true,
+                    idempotentHint = false,
+                    openWorldHint = false))
+    public String cancelOrder(
+            McpSyncRequestContext context,
+            @McpToolParam(description = "The order ID, for example ORD-10002") String orderId) {
+
+        Order order = orderService.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No order with ID '%s'. Check the ID and try again.".formatted(orderId)));
+
+        if (!order.status().isCancellable()) {
+            return "Order %s is %s and can no longer be cancelled. Only PENDING and PROCESSING orders can."
+                    .formatted(orderId, order.status());
+        }
+
+        if (!context.elicitEnabled()) {
+            return "This client cannot ask for confirmation, and cancelling needs it. "
+                    + "Cancel %s through the admin console instead.".formatted(orderId);
+        }
+
+        StructuredElicitResult<CancellationConfirmation> answer = context.elicit(
+                spec -> spec.message("Cancel order %s for %s? The total is %.2f and a refund will be started."
+                        .formatted(orderId, order.customer().name(), order.totalAmount()))
+                        .meta("conversationId", context.request().progressToken()),
+                CancellationConfirmation.class);
+
+        return switch (answer.action()) {
+            case ACCEPT -> {
+                if (answer.structuredContent() == null || !answer.structuredContent().confirmed()) {
+                    yield "Order %s was not cancelled: the confirmation was declined.".formatted(orderId);
+                }
+                orderService.cancel(orderId, answer.structuredContent().note());
+                context.info("Cancelled %s".formatted(orderId));
+                yield "Order %s is cancelled and a refund of %.2f has been started."
+                        .formatted(orderId, order.totalAmount());
+            }
+            case DECLINE -> ("Order %s was not cancelled. The client declined the confirmation, "
+                    + "either because the person said no or because the question could not be presented.")
+                    .formatted(orderId);
+            case CANCEL  -> "Order %s was not cancelled: the user dismissed the question.".formatted(orderId);
+        };
     }
 }
