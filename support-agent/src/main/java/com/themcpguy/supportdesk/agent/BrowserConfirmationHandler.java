@@ -30,13 +30,13 @@ import org.springframework.stereotype.Component;
 public class BrowserConfirmationHandler {
 
     private static final Logger log = LoggerFactory.getLogger(BrowserConfirmationHandler.class);
-    private static final long WAIT_MINUTES = 2;
+    private static final long WAIT_SECONDS = 60;
 
     private final Map<String, SynchronousQueue<ElicitResult>> pending = new ConcurrentHashMap<>();
-    private final ConfirmationChannel channel;
+    private final BrowserChannel channel;
     private final ConversationContext conversations;
 
-    BrowserConfirmationHandler(ConfirmationChannel channel, ConversationContext conversations) {
+    BrowserConfirmationHandler(BrowserChannel channel, ConversationContext conversations) {
         this.channel = channel;
         this.conversations = conversations;
     }
@@ -62,7 +62,7 @@ public class BrowserConfirmationHandler {
             Object schema = request instanceof ElicitFormRequest form ? form.requestedSchema() : null;
             channel.ask(conversationId, id, request.message(), schema);
 
-            ElicitResult answer = slot.poll(WAIT_MINUTES, TimeUnit.MINUTES);
+            ElicitResult answer = slot.poll(WAIT_SECONDS, TimeUnit.SECONDS);
             return answer != null
                     ? answer
                     : new ElicitResult(ElicitResult.Action.CANCEL, Map.of());

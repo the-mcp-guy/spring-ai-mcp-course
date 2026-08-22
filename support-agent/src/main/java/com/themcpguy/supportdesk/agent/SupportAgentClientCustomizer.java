@@ -26,7 +26,7 @@ public class SupportAgentClientCustomizer implements McpClientCustomizer<McpClie
         // The elicitation in Class 12 waits on a person, so the global 30s timeout is
         // far too short for this one connection.
         if ("orders".equals(connectionName)) {
-            spec.requestTimeout(Duration.ofMinutes(5));
+            spec.requestTimeout(Duration.ofMinutes(2));
         }
 
         // Roots tell a server what we are working on. The filesystem server enforces its

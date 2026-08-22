@@ -20,13 +20,13 @@ public class SupportController {
 
     private final SupportAgentService agent;
     private final RefundEmailService refundEmails;
-    private final ConfirmationChannel channel;
+    private final BrowserChannel channel;
     private final BrowserConfirmationHandler confirmations;
     private final ConversationContext conversations;
 
     SupportController(SupportAgentService agent,
                       RefundEmailService refundEmails,
-                      ConfirmationChannel channel,
+                      BrowserChannel channel,
                       BrowserConfirmationHandler confirmations,
                       ConversationContext conversations) {
         this.agent = agent;
