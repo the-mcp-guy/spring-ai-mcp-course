@@ -26,7 +26,7 @@ spring:
       client:
         name: support-agent
         version: 1.0.0
-        request-timeout: 2m
+        request-timeout: 30s
         streamable-http:
           connections:
             orders:
