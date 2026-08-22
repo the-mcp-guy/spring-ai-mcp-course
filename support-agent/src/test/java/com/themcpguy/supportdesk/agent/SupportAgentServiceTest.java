@@ -111,7 +111,7 @@ class SupportAgentServiceTest {
         given(chatModel.call(any(Prompt.class)))
                 .willReturn(new ChatResponse(List.of(new Generation(new AssistantMessage("ok")))));
 
-        agent.chatWithPolicy("test", "Can they still return it?");
+        agent.chatWithPolicy("test", "Can they still return it?", null);
 
         ArgumentCaptor<Prompt> prompt = ArgumentCaptor.forClass(Prompt.class);
         verify(chatModel).call(prompt.capture());

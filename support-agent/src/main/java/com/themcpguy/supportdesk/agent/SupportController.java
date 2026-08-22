@@ -46,7 +46,8 @@ public class SupportController {
     public ChatReply chat(@RequestBody ChatRequest request) {
         conversations.set(request.conversationId());
         try {
-            return new ChatReply(agent.chatWithPolicy(request.conversationId(), request.message()));
+            return new ChatReply(agent.chatWithPolicy(
+                    request.conversationId(), request.message(), request.orderId()));
         }
         catch (ResourceAccessException e) {
             return new ChatReply("The model did not answer in time, so the request was stopped. Ask again in a moment.");
