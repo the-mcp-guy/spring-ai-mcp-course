@@ -123,6 +123,7 @@ export default function ChatPanel({ order }) {
       {confirmation && (
         <ConfirmDialog
           message={confirmation.message}
+          seconds={confirmation.seconds}
           onAnswer={answerConfirmation}
         />
       )}

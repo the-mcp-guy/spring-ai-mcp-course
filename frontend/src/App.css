@@ -109,3 +109,5 @@ form button:disabled { opacity: 0.4; cursor: default; }
 .muted { color: var(--muted); font-size: 13px; }
 .error { color: var(--danger); font-size: 13px; }
 code { font-family: ui-monospace, monospace; font-size: 12px; }
+
+.dialog .countdown { font-size: 12px; color: var(--muted); margin: 4px 0 12px; }
