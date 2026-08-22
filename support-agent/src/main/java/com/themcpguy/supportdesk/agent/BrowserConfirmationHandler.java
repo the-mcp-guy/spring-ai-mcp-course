@@ -36,16 +36,18 @@ public class BrowserConfirmationHandler {
 
     private final Map<String, SynchronousQueue<ElicitResult>> pending = new ConcurrentHashMap<>();
     private final BrowserChannel channel;
-    private final ConversationContext conversations;
 
-    BrowserConfirmationHandler(BrowserChannel channel, ConversationContext conversations) {
+    BrowserConfirmationHandler(BrowserChannel channel) {
         this.channel = channel;
-        this.conversations = conversations;
     }
 
     @McpElicitation(clients = "orders")
     public ElicitResult confirm(ElicitRequest request) {
-        String conversationId = conversations.current();
+        // The server put the conversation on the question itself, because this method does
+        // not run on the thread that made the tool call: Spring AI hands a synchronous
+        // elicitation handler to Schedulers.boundedElastic().
+        Object token = request.meta() == null ? null : request.meta().get("conversationId");
+        String conversationId = token == null ? null : token.toString();
 
         // Nobody is watching: the command line, or a browser that went away. Declining is
         // the safe answer, because the tool behind this cancels an order.
