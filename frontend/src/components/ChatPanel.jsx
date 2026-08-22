@@ -24,7 +24,7 @@ export default function ChatPanel({ order, onClearOrder }) {
       source = new EventSource(`/api/events?conversationId=${conversationId.current}`)
       source.onopen = () => setAgentUp(true)
       source.onerror = () => {
-        // Before Class 12 the agent has no /api/events endpoint, so the stream
+        // Before Class 11 the agent has no /api/events endpoint, so the stream
         // failing does not by itself mean the agent is down. Probe with a plain
         // request: any HTTP answer, even a 404, proves the agent is running.
         const probe = new AbortController()
