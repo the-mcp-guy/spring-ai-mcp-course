@@ -32,8 +32,8 @@ public class BrowserChannel {
         return emitter;
     }
 
-    public void ask(String conversationId, String id, String message, Object schema) {
-        send(conversationId, "confirmation", Map.of("id", id, "message", message));
+    public void ask(String conversationId, String id, String message, Object schema, long seconds) {
+        send(conversationId, "confirmation", Map.of("id", id, "message", message, "seconds", seconds));
     }
 
     public void progress(String conversationId, int percent) {
