@@ -21,18 +21,18 @@ public class SupportController {
     private final SupportAgentService agent;
     private final RefundEmailService refundEmails;
     private final BrowserChannel channel;
-    private final BrowserConfirmationHandler confirmations;
+    private final BrowserConfirmationHandler confirmationHandler;
     private final ConversationContext conversations;
 
     SupportController(SupportAgentService agent,
                       RefundEmailService refundEmails,
                       BrowserChannel channel,
-                      BrowserConfirmationHandler confirmations,
+                      BrowserConfirmationHandler confirmationHandler,
                       ConversationContext conversations) {
         this.agent = agent;
         this.refundEmails = refundEmails;
         this.channel = channel;
-        this.confirmations = confirmations;
+        this.confirmationHandler = confirmationHandler;
         this.conversations = conversations;
     }
 
@@ -61,7 +61,7 @@ public class SupportController {
     /** Wakes the thread parked inside BrowserConfirmationHandler. */
     @PostMapping("/api/confirmations/{id}")
     public void answer(@PathVariable String id, @RequestBody AnswerRequest body) {
-        confirmations.answer(id, body.confirmed(), body.note());
+        confirmationHandler.answer(id, body.confirmed(), body.note());
     }
 
     @PostMapping("/api/refund-email")
