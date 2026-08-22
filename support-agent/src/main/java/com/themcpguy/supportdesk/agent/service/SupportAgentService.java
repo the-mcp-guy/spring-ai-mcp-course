@@ -43,6 +43,12 @@ public class SupportAgentService {
                       the user to confirm beforehand.
                     """;
 
+    /**
+     * Who is using the app. There is no login yet (Class 17 looks at authorization),
+     * so the operating-system username stands in for one.
+     */
+    static final String AGENT_ID = System.getProperty("user.name");
+
     private final ChatClient chatClient;
     private final McpResources resources;
 
@@ -59,7 +65,7 @@ public class SupportAgentService {
     public String chat(String conversationId, String userMessage) {
         return chatClient.prompt()
                 .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId))
-                .toolContext(Map.of("progressToken", conversationId))
+                .toolContext(Map.of("progressToken", conversationId, "agentId", AGENT_ID))
                 .user(userMessage)
                 .call()
                 .content();
@@ -76,7 +82,7 @@ public class SupportAgentService {
 
         return chatClient.prompt()
                 .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId))
-                .toolContext(Map.of("progressToken", conversationId))
+                .toolContext(Map.of("progressToken", conversationId, "agentId", AGENT_ID))
                 .system(system -> system.text("""
                     {base}
 
@@ -99,7 +105,7 @@ public class SupportAgentService {
     public Flux<String> chatStream(String conversationId, String userMessage) {
         return chatClient.prompt()
                 .advisors(advisor -> advisor.param(ChatMemory.CONVERSATION_ID, conversationId))
-                .toolContext(Map.of("progressToken", conversationId))
+                .toolContext(Map.of("progressToken", conversationId, "agentId", AGENT_ID))
                 .user(userMessage)
                 .stream()
                 .content();

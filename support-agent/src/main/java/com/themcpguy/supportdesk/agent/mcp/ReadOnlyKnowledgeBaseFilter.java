@@ -4,11 +4,13 @@ import java.util.Set;
 
 import io.modelcontextprotocol.spec.McpSchema.Tool;
 
+import org.jspecify.annotations.NullMarked;
 import org.springframework.ai.mcp.McpConnectionInfo;
 import org.springframework.ai.mcp.McpToolFilter;
 import org.springframework.stereotype.Component;
 
 @Component
+@NullMarked
 public class ReadOnlyKnowledgeBaseFilter implements McpToolFilter {
 
     private static final Set<String> ALLOWED_FILE_TOOLS =

@@ -2,11 +2,13 @@ package com.themcpguy.supportdesk.agent.config;
 
 import io.modelcontextprotocol.spec.McpSchema.Tool;
 
+import org.jspecify.annotations.NullMarked;
 import org.springframework.ai.mcp.McpConnectionInfo;
 import org.springframework.ai.mcp.McpToolNamePrefixGenerator;
 import org.springframework.stereotype.Component;
 
 @Component
+@NullMarked
 public class ServerNamePrefixGenerator implements McpToolNamePrefixGenerator {
 
     @Override

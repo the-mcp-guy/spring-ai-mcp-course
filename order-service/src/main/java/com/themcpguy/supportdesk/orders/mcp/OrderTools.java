@@ -1,6 +1,9 @@
 package com.themcpguy.supportdesk.orders.mcp;
 
 import com.themcpguy.supportdesk.orders.service.ShipmentService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.ai.mcp.annotation.McpMeta;
 import org.springframework.ai.mcp.annotation.McpTool;
 import org.springframework.ai.mcp.annotation.McpToolParam;
 import org.springframework.ai.mcp.annotation.context.McpSyncRequestContext;
@@ -14,6 +17,8 @@ import java.util.List;
 
 @Component
 public class OrderTools {
+
+    private static final Logger log = LoggerFactory.getLogger(OrderTools.class);
 
     private final OrderService orderService;
     private final ShipmentService shipmentService;
@@ -37,7 +42,10 @@ public class OrderTools {
                     idempotentHint = true,
                     openWorldHint = false))
     public Order getOrder(
-            @McpToolParam(description = "The order ID, for example ORD-10001") String orderId) {
+            @McpToolParam(description = "The order ID, for example ORD-10001") String orderId,
+            McpMeta meta) {
+
+        log.info("get_order {} requested by {}", orderId, meta.get("support_agent_id"));
 
         return orderService.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException(
