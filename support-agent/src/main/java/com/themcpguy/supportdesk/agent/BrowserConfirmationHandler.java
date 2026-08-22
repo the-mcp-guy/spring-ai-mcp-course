@@ -62,7 +62,7 @@ public class BrowserConfirmationHandler {
             // ElicitRequest is an interface. The form variant carries the schema Spring
             // AI generated from CancellationConfirmation; a URL variant carries none.
             Object schema = request instanceof ElicitFormRequest form ? form.requestedSchema() : null;
-            channel.ask(conversationId, id, request.message(), schema);
+            channel.ask(conversationId, id, request.message(), schema, WAIT_SECONDS);
 
             ElicitResult answer = slot.poll(WAIT_SECONDS, TimeUnit.SECONDS);
             return answer != null
