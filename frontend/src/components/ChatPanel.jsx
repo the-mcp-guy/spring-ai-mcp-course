@@ -146,6 +146,7 @@ export default function ChatPanel({ order, onClearOrder }) {
       {confirmation && (
         <ConfirmDialog
           message={confirmation.message}
+          seconds={confirmation.seconds}
           onAnswer={answerConfirmation}
         />
       )}
