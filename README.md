@@ -1,14 +1,15 @@
 # Support Desk: Spring AI + MCP course
 
 > [!NOTE]
-> **This branch is Class 11.** It implements
-> [Class 11: Progress and Logging](https://themcpguy.com/docs/mcp-spring-ai/progress-and-logging/),
-> which lets a long-running tool report while it works: a new `recheck_shipments`
-> tool on the order service sends progress and log notifications through
-> `McpSyncRequestContext`, and the agent receives them with `@McpProgress` and
-> `@McpLogging` handlers. Progress is forwarded to the frontend's progress bar over
-> a server-sent events stream at `/api/events`; log messages print in the agent's
-> terminal. Classes 2 to 5 built the server side:
+> **This branch is Class 12.** It implements
+> [Class 12: Elicitation](https://themcpguy.com/docs/mcp-spring-ai/elicitation),
+> which lets a tool ask the person for confirmation before it acts: a new
+> `cancel_order` tool on the order service pauses mid-call with `context.elicit(...)`
+> and waits for a yes or a no. The agent answers with `@McpElicitation` handlers:
+> the console chat asks in the terminal, and web mode shows a dialog in the browser,
+> declining on its own when nobody answers. `update_order_status` refuses the
+> CANCELLED status from this class on, so the confirming tool is the only way to
+> cancel an order. Classes 2 to 5 built the server side:
 > [tools](https://themcpguy.com/docs/mcp-spring-ai/rest-app-to-mcp-server),
 > [more tools](https://themcpguy.com/docs/mcp-spring-ai/tools-in-depth),
 > [resources](https://themcpguy.com/docs/mcp-spring-ai/resources) and
@@ -19,9 +20,11 @@
 > [Class 8](https://themcpguy.com/docs/mcp-spring-ai/consuming-resources-and-prompts/)
 > put the server's resources and prompts to work on the client side,
 > [Class 9](https://themcpguy.com/docs/mcp-spring-ai/a-server-we-did-not-write/)
-> connected the first filesystem server over `support-kb/`, and
+> connected the first filesystem server over `support-kb/`,
 > [Class 10](https://themcpguy.com/docs/mcp-spring-ai/several-servers/) added the
-> archive server and tamed the resulting tool list. `main` stays at the course
+> archive server and tamed the resulting tool list, and
+> [Class 11](https://themcpguy.com/docs/mcp-spring-ai/progress-and-logging/) made a
+> long-running tool report progress and logs while it works. `main` stays at the course
 > starting point, with no AI or MCP code at all, so clone that branch to follow along
 > from Class 1.
 
@@ -39,8 +42,9 @@ time on MCP rather than on Spring Boot.
 order-service/          the application. MCP is added to it from Class 2.
 support-agent/          the agent: an MCP client since Class 6, with a model since Class 7,
                         reading resources and running prompts since Class 8, talking to
-                        a second server since Class 9 and a third since Class 10, and
-                        relaying server progress to the browser since Class 11.
+                        a second server since Class 9 and a third since Class 10, relaying
+                        server progress to the browser since Class 11, and answering the
+                        server's confirmation questions since Class 12.
 frontend/               React + Vite. Never taught, never changed.
 support-kb/             the support team's notes, served over MCP since Class 9
 support-kb-archive/     the pre-2024 versions of the same notes, served since Class 10
@@ -71,7 +75,7 @@ mvn -pl order-service spring-boot:run
   empty password)
 
 From Class 2 this same application also publishes an MCP endpoint on `/mcp`. On this branch
-it registers five tools, all defined in
+it registers six tools, all defined in
 `order-service/src/main/java/com/themcpguy/supportdesk/orders/mcp/OrderTools.java`:
 
 | Tool                   | What it does                                  | Read only |
@@ -81,9 +85,19 @@ it registers five tools, all defined in
 | `get_orders_by_status` | Every order in one status                     | yes       |
 | `update_order_status`  | Move an order to a new status                 | no        |
 | `recheck_shipments`    | Refresh estimates for every in-transit order  | no        |
+| `cancel_order`         | Cancel an order, after the person confirms    | no        |
 
 `recheck_shipments` is the Class 11 tool: it walks every shipped order and reports
 progress and log messages through the MCP request context while it does.
+
+`cancel_order` is the Class 12 tool. For a PENDING or PROCESSING order it pauses
+mid-call with `context.elicit(...)` and asks the person to confirm; only an accepted
+answer with `confirmed: true` cancels the order and starts the refund. From this class
+`update_order_status` rejects the CANCELLED status and points at `cancel_order`
+instead, so the model cannot route around the question. The elicitation request needs
+an open connection back to the client, which is why the server runs the `STREAMABLE`
+protocol rather than `STATELESS`, and its `request-timeout` is raised to 90 seconds
+to give a human time to answer.
 
 From Class 4 it also publishes resources, defined in `PolicyResources.java` and
 `OrderResources.java` in the same package:
@@ -103,7 +117,7 @@ From Class 5 it publishes one prompt as well, in `RefundPrompts.java`:
 The startup log confirms all of it:
 
 ```
-Registered tools: 5
+Registered tools: 6
 Registered resources: 2
 Registered prompts: 1
 Registered completions: 1
@@ -149,13 +163,14 @@ listings as before, with `secure-filesystem-server 0.2.0` now appearing twice, a
 closes with the result of both:
 
 ```
-The model is given 11 tools:
+The model is given 12 tools:
   knowledge_base_archive_read_text_file
   knowledge_base_archive_list_directory
   knowledge_base_archive_list_allowed_directories
   knowledge_base_read_text_file
   knowledge_base_list_directory
   knowledge_base_list_allowed_directories
+  cancel_order
   get_customer_orders
   get_order
   get_orders_by_status
@@ -222,6 +237,37 @@ says `0 estimates changed`: the estimate is derived from the shipping date, so a
 second pass arrives at the same answer, which is what the tool's idempotent hint
 claims.
 
+Since Class 12 a destructive tool asks before it acts. Ask
+
+```
+Please cancel ORD-10002, the customer changed their mind
+```
+
+and the model calls `cancel_order`. The tool pauses on the server, sends an
+elicitation request back over the same connection, and the agent's
+`ConfirmationHandler` presents it in the terminal:
+
+```
+Cancel order ORD-10002 for Marcus Adeyemi? The total is 34.99 and a refund will be started.
+Type 'yes' to confirm:
+```
+
+Type `yes` and the tool resumes, cancels the order and reports the refund; any other
+answer declines, and the tool reports that the order stayed as it was. The system
+prompt tells the model to call the tool and let it ask its own question rather than
+asking for permission in chat first: a model-side question is only a suggestion,
+while the one inside the tool runs every time the code does. In web mode a different
+handler answers, `BrowserConfirmationHandler`, selected by Spring profile. It pushes
+the question over the `/api/events` stream to the browser tab that started the
+conversation, identified by the `conversationId` the server copied into the
+request's metadata, and parks the calling thread on a `SynchronousQueue` until the
+dialog answers or 60 seconds pass. The three timeouts are layered so the innermost
+one always fires first: the dialog gives up after 60 seconds, the server's
+elicitation request after 90, the agent's own client requests after 2 minutes. If
+the tab has gone away, or the question arrives without a conversation ID the
+browser is watching, the handler declines immediately, which the tool treats the
+same as a "no".
+
 Started without the `cli` profile,
 
 ```bash
@@ -239,6 +285,9 @@ Class 8 that surface has grown:
 - `POST /api/refund-email` takes an `orderId` and a `reason`, fetches the server's
   `draft_refund_email` prompt with those arguments, sends the resulting messages to the
   model, and returns the drafted email. The work happens in `RefundEmailService`.
+- `POST /api/confirmations/{id}` carries the browser's answer to a confirmation
+  question back to the handler thread that is parked waiting for it. Only the
+  confirmation dialog calls it, with the one-time ID the question arrived with.
 
 To see the policy read happening, edit
 `order-service/src/main/resources/policies/returns.md`, restart the order service, and
@@ -269,7 +318,10 @@ running in web mode the chat panel talks to it on port 8081. Selecting an order 
 it to the conversation, and the **Draft refund email** button on a shipped, delivered or
 cancelled order calls `/api/refund-email`; both are answered by the agent from Class 8
 on. Since Class 11 the progress bar in the chat panel fills while the server rechecks
-shipments in bulk. The confirmation dialog comes alive in Class 12.
+shipments in bulk, and since Class 12 asking the agent to cancel an order opens the
+confirmation dialog: it shows the server's question with a 60 second countdown, and
+**Confirm** or **Decline** posts the answer to `/api/confirmations`. Letting the
+countdown run out counts as walking away, and the order stays as it was.
 
 ## Running the tests
 
