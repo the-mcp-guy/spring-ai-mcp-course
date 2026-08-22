@@ -1,15 +1,18 @@
 # Support Desk: Spring AI + MCP course
 
 > [!NOTE]
-> **This branch is Class 12.** It implements
-> [Class 12: Elicitation](https://themcpguy.com/docs/mcp-spring-ai/elicitation),
-> which lets a tool ask the person for confirmation before it acts: a new
-> `cancel_order` tool on the order service pauses mid-call with `context.elicit(...)`
-> and waits for a yes or a no. The agent answers with `@McpElicitation` handlers:
-> the console chat asks in the terminal, and web mode shows a dialog in the browser,
-> declining on its own when nobody answers. `update_order_status` refuses the
-> CANCELLED status from this class on, so the confirming tool is the only way to
-> cancel an order. Classes 2 to 5 built the server side:
+> **This branch is Class 13.** It implements
+> [Class 13: Roots, Notifications and Sampling](https://themcpguy.com/docs/mcp-spring-ai/roots-notifications-sampling/),
+> which turns to what the client tells its servers. The agent now declares the
+> `roots` capability and hands each filesystem server its own directory as a root,
+> reacts to the order service's list-changed notifications with three
+> `@Mcp...ListChanged` handlers, and sends a `support_agent_id` alongside every tool
+> call through `_meta`, where `get_order` picks it up and logs who asked. The client
+> request timeout drops to 30 seconds globally, and a customizer raises only the
+> order-service connection back to 2 minutes, because that connection waits on
+> human confirmations. Sampling is covered in the lesson text: the 2026-07-28 spec
+> revision deprecates it, so the branch does not add sampling code.
+> Classes 2 to 5 built the server side:
 > [tools](https://themcpguy.com/docs/mcp-spring-ai/rest-app-to-mcp-server),
 > [more tools](https://themcpguy.com/docs/mcp-spring-ai/tools-in-depth),
 > [resources](https://themcpguy.com/docs/mcp-spring-ai/resources) and
@@ -22,9 +25,11 @@
 > [Class 9](https://themcpguy.com/docs/mcp-spring-ai/a-server-we-did-not-write/)
 > connected the first filesystem server over `support-kb/`,
 > [Class 10](https://themcpguy.com/docs/mcp-spring-ai/several-servers/) added the
-> archive server and tamed the resulting tool list, and
+> archive server and tamed the resulting tool list,
 > [Class 11](https://themcpguy.com/docs/mcp-spring-ai/progress-and-logging/) made a
-> long-running tool report progress and logs while it works. `main` stays at the course
+> long-running tool report progress and logs while it works, and
+> [Class 12](https://themcpguy.com/docs/mcp-spring-ai/elicitation) let a destructive
+> tool ask the person for confirmation before it acts. `main` stays at the course
 > starting point, with no AI or MCP code at all, so clone that branch to follow along
 > from Class 1.
 
@@ -43,8 +48,9 @@ order-service/          the application. MCP is added to it from Class 2.
 support-agent/          the agent: an MCP client since Class 6, with a model since Class 7,
                         reading resources and running prompts since Class 8, talking to
                         a second server since Class 9 and a third since Class 10, relaying
-                        server progress to the browser since Class 11, and answering the
-                        server's confirmation questions since Class 12.
+                        server progress to the browser since Class 11, answering the
+                        server's confirmation questions since Class 12, and declaring
+                        roots and sending _meta since Class 13.
 frontend/               React + Vite. Never taught, never changed.
 support-kb/             the support team's notes, served over MCP since Class 9
 support-kb-archive/     the pre-2024 versions of the same notes, served since Class 10
@@ -263,10 +269,29 @@ conversation, identified by the `conversationId` the server copied into the
 request's metadata, and parks the calling thread on a `SynchronousQueue` until the
 dialog answers or 60 seconds pass. The three timeouts are layered so the innermost
 one always fires first: the dialog gives up after 60 seconds, the server's
-elicitation request after 90, the agent's own client requests after 2 minutes. If
+elicitation request after 90, the agent's requests to the order service after
+2 minutes. Since Class 13 that last value is set per connection in
+`SupportAgentClientCustomizer`, while `application.yaml` gives every other
+connection 30 seconds. If
 the tab has gone away, or the question arrives without a conversation ID the
 browser is watching, the handler declines immediately, which the tool treats the
 same as a "no".
+
+Class 13 turns to what the client tells its servers.
+`SupportAgentClientCustomizer` declares the `roots` capability on the two
+filesystem connections and hands each one its own directory as a root,
+`support-kb/` for the current notes and `support-kb-archive/` for the archive, so
+a server that asks with `roots/list` learns which directories the client considers
+in scope. `CapabilityChanges` registers three handlers with `@McpToolListChanged`,
+`@McpResourceListChanged` and `@McpPromptListChanged`, all scoped to the `orders`
+connection; when the order service changes what it offers, the agent prints the
+new counts, for example `order-service now offers 6 tools`. `SupportMetaConverter`
+copies the operating-system username out of the tool context into `_meta` as
+`support_agent_id`, and `get_order` on the order service receives it through an
+`McpMeta` parameter and logs who asked. The model does not see any of this:
+`_meta` travels next to the arguments, outside the conversation. Sampling, the
+third topic in the lesson title, stays in the lesson text: the 2026-07-28
+revision of the spec deprecates it, so the branch does not add sampling code.
 
 Started without the `cli` profile,
 
