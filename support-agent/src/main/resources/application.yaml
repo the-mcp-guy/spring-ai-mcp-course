@@ -53,3 +53,13 @@ logging:
     com.themcpguy: INFO
     org.springframework.ai.model.tool: DEBUG
     io.modelcontextprotocol.client.transport: DEBUG
+supportdesk:
+  guardrails:
+    blocked-words:
+      - password
+      - credit card
+      - social security
+    refusal-message: >-
+      I can only help with orders and deliveries. Please contact support
+      directly for anything else.
+    tokens-per-conversation: 1000
