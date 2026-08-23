@@ -1,18 +1,11 @@
-# Test configuration.
-#
-# The MCP client is switched off so the suite needs neither order-service running nor
-# Node installed, and the provider key is a placeholder because no test calls a model.
-# Class 14 explains the bean that has to be mocked once the client is disabled.
 spring:
   ai:
     anthropic:
+      api-key: not-used-in-tests
+    openai:
       api-key: not-used-in-tests
     mcp:
       client:
         enabled: false
         toolcallback:
           enabled: false
-
-logging:
-  level:
-    root: WARN

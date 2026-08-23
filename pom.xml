@@ -30,39 +30,6 @@
     <spring-ai.version>2.0.0</spring-ai.version>
   </properties>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <executions>
-          <!--
-            Declaring the plugin here rather than in pluginManagement keeps the parent's
-            repackage execution, which is what makes the jar runnable with java -jar in
-            Class 17. Overriding it in pluginManagement silently drops that execution and
-            produces a jar with no Start-Class.
-          -->
-          <execution>
-            <id>repackage</id>
-            <goals>
-              <goal>repackage</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-            <!--
-              Run from the repository root rather than the module directory, so that the
-              relative paths the stdio MCP servers are given (./support-kb) resolve where
-              the course says they do. Without this the filesystem server exits with
-              "None of the specified directories are accessible", and the client waits
-              20 seconds for a handshake that never arrives.
-            -->
-            <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-
   <dependencyManagement>
     <dependencies>
       <!-- Aligns the versions of every spring-ai-* artifact. Unused until Class 2. -->
@@ -75,5 +42,22 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <!-- Run every module from the repository root, so the relative path the
+             stdio connection hands to the filesystem server resolves the same way
+             no matter which module started the JVM. -->
+        <plugin>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-maven-plugin</artifactId>
+          <configuration>
+            <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
 
 </project>

@@ -1,8 +1,9 @@
-package com.themcpguy.supportdesk.agent;
+package com.themcpguy.supportdesk.agent.service;
 
 import java.util.List;
 import java.util.Map;
 
+import com.themcpguy.supportdesk.agent.mcp.McpResources;
 import io.modelcontextprotocol.spec.McpSchema.GetPromptRequest;
 import io.modelcontextprotocol.spec.McpSchema.PromptMessage;
 import io.modelcontextprotocol.spec.McpSchema.Role;
@@ -14,12 +15,6 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.stereotype.Service;
 
-/**
- * Class 8: run the server's prompt and hand its messages to the model.
- *
- * <p>No tools. Drafting an email from a prompt that already carries the order details
- * needs none, and leaving them out means the model cannot decide to go looking.
- */
 @Service
 public class RefundEmailService {
 
@@ -32,9 +27,9 @@ public class RefundEmailService {
     }
 
     public String draft(String orderId, String reason) {
-        var result = resources.orders().getPrompt(new GetPromptRequest(
-                "draft_refund_email",
-                Map.of("orderId", orderId, "reason", reason)));
+        var result = resources.orders().getPrompt(GetPromptRequest.builder("draft_refund_email")
+                .arguments(Map.of("orderId", orderId, "reason", reason))
+                .build());
 
         List<Message> messages = result.messages().stream()
                 .map(RefundEmailService::toSpringAiMessage)
@@ -46,10 +41,6 @@ public class RefundEmailService {
                 .content();
     }
 
-    /**
-     * MCP has its own PromptMessage and Role; Spring AI has UserMessage and
-     * AssistantMessage. Nothing maps them, so this does.
-     */
     private static Message toSpringAiMessage(PromptMessage promptMessage) {
         String text = promptMessage.content() instanceof TextContent textContent
                 ? textContent.text()

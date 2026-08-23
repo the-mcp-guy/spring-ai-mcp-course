@@ -1,4 +1,4 @@
-package com.themcpguy.supportdesk.agent;
+package com.themcpguy.supportdesk.agent.mcp;
 
 import java.util.Map;
 import java.util.Scanner;
@@ -10,13 +10,6 @@ import org.springframework.ai.mcp.annotation.McpElicitation;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-/**
- * Class 12: answers an elicitation at the command line.
- *
- * <p>Only one elicitation handler may exist per connection, so this one and
- * {@link BrowserConfirmationHandler} are split by profile: this is the bean under
- * {@code cli}, and the browser one is the bean without it.
- */
 @Component
 @Profile("cli")
 public class ConfirmationHandler {

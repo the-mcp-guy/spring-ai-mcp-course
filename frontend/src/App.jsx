@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import OrderList from './components/OrderList.jsx'
 import ChatPanel from './components/ChatPanel.jsx'
+import useTheme from './useTheme.js'
 
 const STATUSES = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED']
 
@@ -9,6 +10,7 @@ export default function App() {
   const [orders, setOrders] = useState([])
   const [selected, setSelected] = useState(null)
   const [error, setError] = useState(null)
+  const [theme, toggleTheme] = useTheme()
 
   useEffect(() => {
     let cancelled = false
@@ -22,7 +24,7 @@ export default function App() {
       .then((data) => {
         if (!cancelled) {
           setOrders(data)
-          setSelected(data[0] ?? null)
+          setSelected(null)
         }
       })
       .catch((e) => !cancelled && setError(e.message))
@@ -35,7 +37,17 @@ export default function App() {
   return (
     <div className="app">
       <header>
-        <h1>Support Desk</h1>
+        <div className="titlebar">
+          <h1>Support Desk</h1>
+          <button
+            className="theme"
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? '☀' : '☾'}
+          </button>
+        </div>
         <nav>
           {STATUSES.map((s) => (
             <button
@@ -52,13 +64,13 @@ export default function App() {
       {error && (
         <p className="error">
           Could not reach order-service: {error}. Start it with{' '}
-          <code>./mvnw -pl order-service spring-boot:run</code>.
+          <code>mvn -pl order-service spring-boot:run</code>.
         </p>
       )}
 
       <main>
         <OrderList orders={orders} selected={selected} onSelect={setSelected} />
-        <ChatPanel order={selected} />
+        <ChatPanel order={selected} onClearOrder={() => setSelected(null)} />
       </main>
     </div>
   )

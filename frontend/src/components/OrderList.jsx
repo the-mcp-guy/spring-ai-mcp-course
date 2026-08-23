@@ -1,5 +1,7 @@
+import RefundDraft from './RefundDraft.jsx'
+
 const money = (amount) =>
-  new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(amount ?? 0)
+  new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR' }).format(amount ?? 0)
 
 export default function OrderList({ orders, selected, onSelect }) {
   return (
@@ -11,7 +13,7 @@ export default function OrderList({ orders, selected, onSelect }) {
           <li
             key={order.orderId}
             className={order.orderId === selected?.orderId ? 'order selected' : 'order'}
-            onClick={() => onSelect(order)}
+            onClick={() => onSelect(order.orderId === selected?.orderId ? null : order)}
           >
             <span className="id">{order.orderId}</span>
             <span className={`badge ${order.status.toLowerCase()}`}>{order.status}</span>
@@ -43,6 +45,7 @@ export default function OrderList({ orders, selected, onSelect }) {
           ) : (
             <p className="shipment muted">Not shipped yet</p>
           )}
+          <RefundDraft order={selected} />
         </div>
       )}
     </section>

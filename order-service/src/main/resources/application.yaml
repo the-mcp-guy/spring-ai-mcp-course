@@ -1,15 +1,13 @@
 spring:
-  application:
-    name: order-service
-
   ai:
     mcp:
       server:
-        # Class 12: long enough for a person to answer a confirmation.
-        request-timeout: 90s
         name: order-service
         version: 1.0.0
         protocol: STREAMABLE
+        request-timeout: 90s
+  application:
+    name: order-service
 
   datasource:
     url: jdbc:h2:mem:orders
@@ -35,3 +33,4 @@ logging:
   level:
     root: WARN
     com.themcpguy: INFO
+    org.springframework.ai.mcp: INFO
