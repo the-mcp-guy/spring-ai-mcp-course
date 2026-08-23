@@ -1,33 +1,36 @@
 spring:
-  application:
-    name: support-agent
-
+  http:
+    clients:
+      read-timeout: 10s
   ai:
-    # Both provider starters are on the classpath, so this names the one to use.
-    # Without it, autoconfiguration finds two ChatModel beans and the context fails.
+    retry:
+      max-attempts: 1
     model:
-      chat: anthropic          # or: ollama
-
-    # Class 7. Swap this block and the POM starter to use a different provider.
+      chat: anthropic          # or: ollama, openai
     anthropic:
       api-key: ${ANTHROPIC_API_KEY}
       chat:
         model: claude-sonnet-4-6
         max-tokens: 4096
-
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        model: gpt-4o
+    ollama:
+      chat:
+        model: qwen3:8b
+        temperature: 0.6
+        top-p: 0.95
+        top-k: 20
     mcp:
       client:
         name: support-agent
         version: 1.0.0
         request-timeout: 30s
-
-        # Class 6: our own server, over Streamable HTTP
         streamable-http:
           connections:
             orders:
               url: http://localhost:8080
-
-        # Classes 9 and 10: two servers we did not write, over stdio
         stdio:
           connections:
             knowledge-base:
@@ -42,14 +45,21 @@ spring:
                 - -y
                 - "@modelcontextprotocol/server-filesystem"
                 - ./support-kb-archive
-
-  main:
-    banner-mode: "off"
-
 server:
   port: 8081
-
 logging:
   level:
     root: WARN
     com.themcpguy: INFO
+    org.springframework.ai.model.tool: DEBUG
+    io.modelcontextprotocol.client.transport: DEBUG
+supportdesk:
+  guardrails:
+    blocked-words:
+      - password
+      - credit card
+      - social security
+    refusal-message: >-
+      I can only help with orders and deliveries. Please contact support
+      directly for anything else.
+    tokens-per-conversation: 1000

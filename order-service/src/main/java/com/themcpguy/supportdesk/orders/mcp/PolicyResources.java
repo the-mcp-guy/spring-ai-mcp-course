@@ -8,12 +8,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 
-/**
- * The product policies, as MCP resources.
- *
- * <p>A resource rather than a tool because the application decides when a policy belongs
- * in a conversation. The model does not go looking for it.
- */
 @Component
 public class PolicyResources {
 

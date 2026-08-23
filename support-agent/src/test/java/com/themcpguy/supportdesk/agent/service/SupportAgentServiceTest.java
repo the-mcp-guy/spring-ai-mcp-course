@@ -1,4 +1,4 @@
-package com.themcpguy.supportdesk.agent;
+package com.themcpguy.supportdesk.agent.service;
 
 import java.util.List;
 
@@ -20,6 +20,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import com.themcpguy.supportdesk.agent.mcp.McpResources;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -27,31 +29,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 
-/**
- * Class 14, client side: that the agent is wired up and asks the model.
- *
- * <p>The MCP client is disabled in src/test/resources/application.yaml, so no connection
- * is opened and the suite needs neither order-service running nor Node installed. With
- * the client off, SyncMcpToolCallbackProvider is never created and something has to
- * supply it, which is the trap the class describes.
- */
 @SpringBootTest
 @Import(SupportAgentServiceTest.Stubs.class)
 class SupportAgentServiceTest {
 
-    /**
-     * Both stand-ins have to be right before the context is built, because
-     * ChatClient.Builder reads them while SupportAgentService is being constructed.
-     * A plain @MockitoBean is stubbed too late and fails in two different ways:
-     *
-     * <ul>
-     *   <li>A mocked SyncMcpToolCallbackProvider returns null from getToolCallbacks(),
-     *       Mockito's default for an array, and defaultTools() fails with
-     *       "Cannot read the array length because callbacks is null".
-     *   <li>A mocked ChatModel returns null from getOptions(), and the builder fails with
-     *       "Cannot invoke ChatOptions.mutate() because getOptions() is null".
-     * </ul>
-     */
     @TestConfiguration
     static class Stubs {
 
@@ -60,8 +41,8 @@ class SupportAgentServiceTest {
             return new SyncMcpToolCallbackProvider(List.of());
         }
 
-        // @Primary because the Anthropic starter is on the test classpath and
-        // autoconfigures its own ChatModel, leaving two candidates.
+        // @Primary because the Anthropic starter autoconfigures its own ChatModel,
+        // leaving two candidates.
         @Bean
         @Primary
         ChatModel chatModel() {
@@ -80,10 +61,6 @@ class SupportAgentServiceTest {
     @Autowired
     SupportAgentService agent;
 
-    /**
-     * The mock is a singleton bean rather than a @MockitoBean, so nothing resets it
-     * between tests and recorded invocations accumulate.
-     */
     @BeforeEach
     void resetTheModel() {
         reset(chatModel);
@@ -91,7 +68,7 @@ class SupportAgentServiceTest {
     }
 
     @Test
-    void sendsTheQuestionToTheModel() {
+    void shouldSendTheQuestionToTheModel() {
         given(chatModel.call(any(Prompt.class)))
                 .willReturn(new ChatResponse(List.of(new Generation(new AssistantMessage("ok")))));
 
@@ -106,7 +83,7 @@ class SupportAgentServiceTest {
     }
 
     @Test
-    void attachesTheReturnsPolicyToTheSystemPrompt() {
+    void shouldAttachTheReturnsPolicyToTheSystemPrompt() {
         given(resources.read("policy://returns")).willReturn("RETURNS POLICY BODY");
         given(chatModel.call(any(Prompt.class)))
                 .willReturn(new ChatResponse(List.of(new Generation(new AssistantMessage("ok")))));
@@ -116,8 +93,6 @@ class SupportAgentServiceTest {
         ArgumentCaptor<Prompt> prompt = ArgumentCaptor.forClass(Prompt.class);
         verify(chatModel).call(prompt.capture());
 
-        // The policy is in the conversation before the model sees the question, which is
-        // the difference between a resource and a tool.
         assertThat(prompt.getValue().getInstructions())
                 .anyMatch(message -> message.getText().contains("RETURNS POLICY BODY"));
     }

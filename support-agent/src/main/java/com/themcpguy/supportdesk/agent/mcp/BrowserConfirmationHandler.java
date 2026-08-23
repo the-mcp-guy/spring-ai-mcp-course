@@ -1,4 +1,4 @@
-package com.themcpguy.supportdesk.agent;
+package com.themcpguy.supportdesk.agent.mcp;
 
 import java.util.Map;
 import java.util.UUID;
@@ -10,28 +10,17 @@ import io.modelcontextprotocol.spec.McpSchema.ElicitFormRequest;
 import io.modelcontextprotocol.spec.McpSchema.ElicitRequest;
 import io.modelcontextprotocol.spec.McpSchema.ElicitResult;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.ai.mcp.annotation.McpElicitation;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-/**
- * Class 12: answers the server's confirmation request.
- *
- * <p>The hard part is that this method runs on a thread inside the agent while an MCP
- * tool call is still open on the server, and the answer has to come from a person on the
- * other end of an HTTP connection. So it sends the question out, blocks, and is woken by
- * a separate request carrying the answer.
- *
- * <p>Exactly one parameter, of type ElicitRequest. Spring AI rejects any other shape at
- * startup.
- */
+import com.themcpguy.supportdesk.agent.service.BrowserChannel;
+
 @Component
 @Profile("!cli")
 public class BrowserConfirmationHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(BrowserConfirmationHandler.class);
+    /** How long the person has to answer. Everything else waits longer than this. */
     private static final long WAIT_SECONDS = 60;
 
     private final Map<String, SynchronousQueue<ElicitResult>> pending = new ConcurrentHashMap<>();
@@ -43,16 +32,14 @@ public class BrowserConfirmationHandler {
 
     @McpElicitation(clients = "orders")
     public ElicitResult confirm(ElicitRequest request) {
-        // The server put the conversation on the question itself, because this method does
-        // not run on the thread that made the tool call: Spring AI hands a synchronous
-        // elicitation handler to Schedulers.boundedElastic().
+        // The server put the conversation on the question, so it survives the hop to
+        // whichever thread Spring AI runs this handler on.
         Object token = request.meta() == null ? null : request.meta().get("conversationId");
         String conversationId = token == null ? null : token.toString();
 
-        // Nobody is watching: the command line, or a browser that went away. Declining is
-        // the safe answer, because the tool behind this cancels an order.
+        // Nobody is watching: the command line, or a browser that went away.
+        // Declining is the safe answer, because the tool behind this cancels an order.
         if (conversationId == null || !channel.isWatching(conversationId)) {
-            log.info("No one to ask, declining: {}", request.message());
             return new ElicitResult(ElicitResult.Action.DECLINE, Map.of());
         }
 
@@ -61,9 +48,9 @@ public class BrowserConfirmationHandler {
         pending.put(id, slot);
 
         try {
-            // ElicitRequest is an interface. The form variant carries the schema Spring
-            // AI generated from CancellationConfirmation; a URL variant carries none.
-            Object schema = request instanceof ElicitFormRequest form ? form.requestedSchema() : null;
+            Object schema = request instanceof ElicitFormRequest form
+                    ? form.requestedSchema()
+                    : null;
             channel.ask(conversationId, id, request.message(), schema, WAIT_SECONDS);
 
             ElicitResult answer = slot.poll(WAIT_SECONDS, TimeUnit.SECONDS);
@@ -84,12 +71,11 @@ public class BrowserConfirmationHandler {
     public void answer(String id, boolean confirmed, String note) {
         SynchronousQueue<ElicitResult> slot = pending.get(id);
         if (slot == null) {
-            log.info("Answer for {} arrived too late", id);
             return;
         }
         slot.offer(confirmed
                 ? new ElicitResult(ElicitResult.Action.ACCEPT,
-                        Map.of("confirmed", true, "note", note == null ? "" : note))
+                Map.of("confirmed", true, "note", note == null ? "" : note))
                 : new ElicitResult(ElicitResult.Action.DECLINE, Map.of()));
     }
 }
