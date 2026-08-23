@@ -96,6 +96,15 @@ mvn -pl order-service spring-boot:run
 - H2 console: `http://localhost:8080/h2-console` (JDBC URL `jdbc:h2:mem:orders`, user `sa`,
   empty password)
 
+The `stdio` profile is the Class 17 addition. Started with
+`--spring.profiles.active=stdio`, the same application skips the web server,
+turns console logging off, and speaks MCP over stdin and stdout instead, which is
+the transport Claude Desktop expects from a local server. Its log goes to
+`/tmp/order-service-stdio.log`, so nothing stray reaches the protocol stream.
+The Spring Boot plugin declared in `order-service/pom.xml` makes
+`mvn -pl order-service package` produce the runnable jar that Claude Desktop's
+configuration points at.
+
 From Class 2 this same application also publishes an MCP endpoint on `/mcp`. On this branch
 it registers six tools, all defined in
 `order-service/src/main/java/com/themcpguy/supportdesk/orders/mcp/OrderTools.java`:
