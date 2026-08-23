@@ -1,0 +1,11 @@
+spring:
+  ai:
+    anthropic:
+      api-key: not-used-in-tests
+    openai:
+      api-key: not-used-in-tests
+    mcp:
+      client:
+        enabled: false
+        toolcallback:
+          enabled: false

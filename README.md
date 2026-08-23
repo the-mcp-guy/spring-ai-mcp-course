@@ -1,17 +1,20 @@
 # Support Desk: Spring AI + MCP course
 
 > [!NOTE]
-> **This branch is Class 13.** It implements
-> [Class 13: Roots, Notifications and Sampling](https://themcpguy.com/docs/mcp-spring-ai/roots-notifications-sampling/),
-> which turns to what the client tells its servers. The agent now declares the
-> `roots` capability and hands each filesystem server its own directory as a root,
-> reacts to the order service's list-changed notifications with three
-> `@Mcp...ListChanged` handlers, and sends a `support_agent_id` alongside every tool
-> call through `_meta`, where `get_order` picks it up and logs who asked. The client
-> request timeout drops to 30 seconds globally, and a customizer raises only the
-> order-service connection back to 2 minutes, because that connection waits on
-> human confirmations. Sampling is covered in the lesson text: the 2026-07-28 spec
-> revision deprecates it, so the branch does not add sampling code.
+> **This branch is Class 14.** It implements
+> [Class 14: Testing](https://themcpguy.com/docs/mcp-spring-ai/testing/),
+> which covers both applications with tests that never call a model. `order-service`
+> gains four test classes: the tool methods called as plain Java, the refund prompt,
+> the two tools that take an `McpSyncRequestContext`, with that context mocked, and a
+> registration test asserting the annotation scanner found every tool with the right
+> hints and schemas. `support-agent` gains its first test, which starts the real
+> context and replaces only the `ChatModel`, so the suite runs without an API key, a
+> network connection or a running `order-service`. `mvn test` from the repository
+> root runs 21 tests in `order-service` and 2 in `support-agent`.
+> [Class 13](https://themcpguy.com/docs/mcp-spring-ai/roots-notifications-sampling/)
+> had the client declare the `roots` capability and hand each filesystem server its
+> own directory, react to the order service's list-changed notifications, and send a
+> `support_agent_id` in `_meta` on every tool call, where `get_order` logs who asked.
 > Classes 2 to 5 built the server side:
 > [tools](https://themcpguy.com/docs/mcp-spring-ai/rest-app-to-mcp-server),
 > [more tools](https://themcpguy.com/docs/mcp-spring-ai/tools-in-depth),
@@ -49,8 +52,9 @@ support-agent/          the agent: an MCP client since Class 6, with a model sin
                         reading resources and running prompts since Class 8, talking to
                         a second server since Class 9 and a third since Class 10, relaying
                         server progress to the browser since Class 11, answering the
-                        server's confirmation questions since Class 12, and declaring
-                        roots and sending _meta since Class 13.
+                        server's confirmation questions since Class 12, declaring
+                        roots and sending _meta since Class 13, and carrying its own
+                        tests since Class 14.
 frontend/               React + Vite. Never taught, never changed.
 support-kb/             the support team's notes, served over MCP since Class 9
 support-kb-archive/     the pre-2024 versions of the same notes, served since Class 10
