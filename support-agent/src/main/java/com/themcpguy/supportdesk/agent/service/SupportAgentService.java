@@ -1,8 +1,10 @@
 package com.themcpguy.supportdesk.agent.service;
 
+import com.themcpguy.supportdesk.agent.guard.TokenBudgetAdvisor;
 import com.themcpguy.supportdesk.agent.mcp.McpResources;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.SafeGuardAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
@@ -52,13 +54,19 @@ public class SupportAgentService {
     private final ChatClient chatClient;
     private final McpResources resources;
 
-    SupportAgentService(ChatClient.Builder builder, SyncMcpToolCallbackProvider mcpTools, McpResources resources) {
+    SupportAgentService(ChatClient.Builder builder,
+                        SyncMcpToolCallbackProvider mcpTools,
+                        McpResources resources,
+                        SafeGuardAdvisor safeGuard,
+                        TokenBudgetAdvisor tokenBudgetAdvisor) {
         this.resources = resources;
         this.chatClient = builder
                 .defaultSystem(BASE_SYSTEM)
                 .defaultTools(mcpTools)
-                .defaultAdvisors(MessageChatMemoryAdvisor.builder(
-                        MessageWindowChatMemory.builder().build()).build())
+                .defaultAdvisors(
+                        MessageChatMemoryAdvisor.builder(
+                                MessageWindowChatMemory.builder().build()).build(),
+                        safeGuard, tokenBudgetAdvisor)
                 .build();
     }
 
