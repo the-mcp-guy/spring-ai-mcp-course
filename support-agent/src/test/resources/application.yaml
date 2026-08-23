@@ -9,3 +9,14 @@ spring:
         enabled: false
         toolcallback:
           enabled: false
+
+supportdesk:
+  guardrails:
+    blocked-words:
+      - password
+      - credit card
+      - social security
+    refusal-message: >-
+      I can only help with orders and deliveries. Please contact support
+      directly for anything else.
+    tokens-per-conversation: 1000
